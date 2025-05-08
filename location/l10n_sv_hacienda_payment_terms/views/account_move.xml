@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sit_account_move_data_id_inherit" model="ir.ui.view">
+        <field name="name">account.move.inherit</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="l10n_sv.sit_account_move_data_id"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='condiciones_pago']" position="replace">
+                <field name="condiciones_pago"  options="{'no_open': True, 'no_create': True}" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='sit_periodo']" position="replace">
+                <field name="sit_periodo" options="{'no_open': True, 'no_create': True}" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='sit_plazo']" position="replace">
+                <field name="sit_plazo" options="{'no_open': True, 'no_create': True}" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+     <record id="view_account_move_reversal_inherit" model="ir.ui.view">
+        <field name="name">account.move.reversal.form.inherit</field>
+        <field name="model">account.move.reversal</field>
+        <field name="inherit_id" ref="account.view_account_move_reversal"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='journal_id']" position="replace">
+                <field name="journal_id" readonly="1" force_save="1" />
+            </xpath>
+        </field>
+    </record>
+    
+</odoo>

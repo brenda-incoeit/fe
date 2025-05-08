@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_account_journal_tipo_documento_field" model="ir.ui.view">
+        <field name="name">view_account_journal_tipo_documento_field</field>
+        <field name="model">account.journal.tipo_documento.field</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="codigo" />
+                <field name="valores" />
+            </list>
+        </field>
+    </record>
+
+    <record id="view_account_move_tipo_contingencia_field" model="ir.ui.view">
+        <field name="name">view_account_move_tipo_contingencia_field</field>
+        <field name="model">account.move.tipo_contingencia.field</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="codigo" />
+                <field name="valores" />
+            </list>
+        </field>
+    </record>
+    <record id="view_account_move_tipo_establecimiento_field" model="ir.ui.view">
+        <field name="name">view_account_move_tipo_establecimiento_field</field>
+        <field name="model">account.move.tipo_establecimiento.field</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="codigo" />
+                <field name="valores" />
+            </list>
+        </field>
+    </record>    
+    <record id="view_account_move_tipo_item_field" model="ir.ui.view">
+        <field name="name">view_account_move_tipo_item_field</field>
+        <field name="model">account.move.tipo_item.field</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="codigo" />
+                <field name="valores" />
+            </list>
+        </field>
+    </record>    
+    <record id="view_account_move_unidad_medida_field" model="ir.ui.view">
+        <field name="name">view_account_move_unidad_medida_field</field>
+        <field name="model">account.move.unidad_medida.field</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="codigo" />
+                <field name="valores" />
+            </list>
+        </field>
+    </record>    
+    <record id="view_account_move_tributos_field" model="ir.ui.view">
+        <field name="name">view_account_move_tributos_field</field>
+        <field name="model">account.move.tributos.field</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="codigo" />
+                <field name="valores" />
+            </list>
+        </field>
+    </record>    
+    <record id="view_account_move_forma_pago_field" model="ir.ui.view">
+        <field name="name">view_account_move_forma_pago_field</field>
+        <field name="model">account.move.forma_pago.field</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="codigo" />
+                <field name="valores" />
+            </list>
+        </field>
+    </record>    
+    <record id="view_account_move_plazo_field" model="ir.ui.view">
+        <field name="name">view_account_move_plazo_field</field>
+        <field name="model">account.move.plazo.field</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="codigo" />
+                <field name="valores" />
+            </list>
+        </field>
+    </record>
+    <record id="view_account_move_actividad_economica_field" model="ir.ui.view">
+        <field name="name">view_account_move_actividad_economica_field</field>
+        <field name="model">account.move.actividad_economica.field</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="codigo" />
+                <field name="valores" />
+            </list>
+        </field>
+    </record>
+    <record id="view_account_move_otros_documentos_field" model="ir.ui.view">
+        <field name="name">view_account_move_otros_documentos_field</field>
+        <field name="model">account.move.otros_documentos.field</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="codigo" />
+                <field name="valores" />
+            </list>
+        </field>
+    </record>
+    <record id="view_account_move_tipo_documento_contingencia_field" model="ir.ui.view">
+        <field name="name">view_account_move_tipo_documento_contingencia_field</field>
+        <field name="model">account.move.tipo_documento_contingencia.field</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="codigo" />
+                <field name="valores" />
+            </list>
+        </field>
+    </record>
+    <record id="view_account_move_tipo_invalidacion_field" model="ir.ui.view">
+        <field name="name">view_account_move_tipo_invalidacion_field</field>
+        <field name="model">account.move.tipo_invalidacion.field</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="codigo" />
+                <field name="valores" />
+            </list>
+        </field>
+    </record>
+    <record id="view_account_move_tipo_donacion_field" model="ir.ui.view">
+        <field name="name">view_account_move_tipo_donacion_field</field>
+        <field name="model">account.move.tipo_donacion.field</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="codigo" />
+                <field name="valores" />
+            </list>
+        </field>
+    </record>
+    <record id="view_account_move_recinto_fiscal_field" model="ir.ui.view">
+        <field name="name">view_account_move_recinto_fiscal_field</field>
+        <field name="model">account.move.recinto_fiscal.field</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="codigo" />
+                <field name="valores" />
+            </list>
+        </field>
+    </record>
+    <record id="view_account_move_regimen_field" model="ir.ui.view">
+        <field name="name">view_account_move_regimen_field</field>
+        <field name="model">account.move.regimen.field</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="codigo" />
+                <field name="valores" />
+            </list>
+        </field>
+    </record>
+    <record id="view_account_move_tipo_persona_field" model="ir.ui.view">
+        <field name="name">view_account_move_tipo_persona_field</field>
+        <field name="model">account.move.tipo_persona.field</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="codigo" />
+                <field name="valores" />
+            </list>
+        </field>
+    </record>
+    <record id="view_account_move_transporte_field" model="ir.ui.view">
+        <field name="name">view_account_move_transporte_field</field>
+        <field name="model">account.move.transporte.field</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="codigo" />
+                <field name="valores" />
+            </list>
+        </field>
+    </record>
+    <record id="view_account_move_domicilio_fiscal_field" model="ir.ui.view">
+        <field name="name">view_account_move_domicilio_fiscal_field</field>
+        <field name="model">account.move.domicilio_fiscal.field</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="codigo" />
+                <field name="valores" />
+            </list>
+        </field>
+    </record>
+
+    <record id="view_account_journal_tipo_modelo_field" model="ir.ui.view">
+        <field name="name">view_account_journal_tipo_modelo_field</field>
+        <field name="model">account.journal.tipo_modelo.field</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="codigo"/>
+                <field name="valores"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_account_move_tipo_operacion_field" model="ir.ui.view">
+        <field name="name">view_account_move_tipo_operacion_field</field>
+        <field name="model">account.move.tipo_operacion.field</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="codigo" />
+                <field name="valores" />
+            </list>
+        </field>
+    </record>
+</odoo>

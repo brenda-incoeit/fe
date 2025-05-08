@@ -1,0 +1,13 @@
+id,codigo,valores
+dc_sv_sf,"","Factura SF"
+dc_sv_fe,"01","Factura"
+dc_sv_ccfe,"03","Comprobante de crédito fiscal"
+dc_sv_nre,"04","Nota de remisión"
+dc_sv_nce,"05","Nota de crédito"
+dc_sv_nde,"06","Nota de débito"
+dc_sv_cre,"07","Comprobante de retención"
+dc_sv_cle,"08","Comprobante de liquidacién"
+dc_sv_dcle,"09","Documento contable de liquidación"
+dc_sv_fexe,"11","Facturas de exportación"
+dc_sv_fsee,"14","Factura de sujeto excluido"
+dc_sv_cde,"15","Comprobante de donación"

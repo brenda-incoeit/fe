@@ -1,0 +1,17 @@
+id,codigo,valores
+Cat_031_01,01,EXW-En fabrica
+Cat_031_02,02,FCA-Libre transportista
+Cat_031_03,03,CPT-Transporte pagado hasta
+Cat_031_04,04,CIP-Transporte y seguro pagado hasta
+Cat_031_05,05,DAP-Entrega en el lugar
+Cat_031_06,06,DPU-Entregado en el lugar descargado
+Cat_031_07,07,DDP-Entrega con impuestos pagados
+Cat_031_08,08,FAS-Libre al costado del buque
+Cat_031_09,09,FOB-Libre a bordo
+Cat_031_10,10,CFR-Costo y flete
+Cat_031_11,11,CIF- Costo seguro y flete
+Cat_031_12,12,DAT-Entregado en terminal
+Cat_031_13,13,DAF-Entregada en frontera
+Cat_031_14,14,DES-Entregada sobre duque
+Cat_031_15,15,DEQ-Entregada en muelle
+Cat_031_16,16,DDU- Entregada derechos no pagados

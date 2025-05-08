@@ -1,0 +1,50 @@
+id,codigo,valores,sit_aplicados_a
+Cat_015_20,20,"Impuesto al Valor Agregado 13%",1
+Cat_015_C3,C3,"Impuesto al Valor Agregado (exportaciones) 0% ",1
+Cat_015_59,59,"Turismo: por alojamiento (5%)",1
+Cat_015_71,71,"Turismo: salida del país por vía aérea $7.00",1
+Cat_015_D1,D1,"FOVIAL ($0.20 Ctvs. por galón)",1
+Cat_015_C8,C8,"COTRANS ($0.10 Ctvs. por galón)",1
+Cat_015_D5,D5,"Otras tasas casos especiales",1
+Cat_015_D4,D4,"Otros impuestos casos especiales",1
+Cat_015_A8,A8,"Impuesto Especial al Combustible (0%, 0.5%, 1%)",2
+Cat_015_57,57,"Impuesto industria de Cemento ",2
+Cat_015_90,90,"Impuesto especial a la primera matrícula",2
+Cat_015_D4,D4,"Otros impuestos casos especiales",2
+Cat_015_D5,D5,"Otras tasas casos especiales",2
+Cat_015_A6,A6,"Impuesto ad- valorem, armas de fuego, municiones explosivas y artículos similares",2
+Cat_015_C5,C5,"Impuesto ad- valorem por diferencial de precios de bebidas alcohólicas (8%)",3
+Cat_015_C6,C6,"Impuesto ad- valorem por diferencial de precios al tabaco cigarrillos (39%)",3
+Cat_015_C7,C7,"Impuesto ad- valorem por diferencial de precios al tabaco cigarros (100%)",3
+Cat_015_19,19,"Fabricante  de  Bebidas  Gaseosas,  Isotónicas,  Deportivas,  Fortificantes, Energizante o Estimulante",3
+Cat_015_28,28,"Importador  de  Bebidas  Gaseosas,  Isotónicas,  Deportivas, Fortificantes, Energizante o Estimulante",3
+Cat_015_31,31,"Detallistas o Expendedores de Bebidas Alcohólicas",3
+Cat_015_32,32,"Fabricante de Cerveza",3
+Cat_015_33,33,"Importador de Cerveza",3
+Cat_015_34,34,"Fabricante de Productos de Tabaco",3
+Cat_015_35,35,"Importador de Productos de Tabaco",3
+Cat_015_36,36,"Fabricante de Armas de Fuego, Municiones y Artículos Similares",3
+Cat_015_37,37,"Importador de Arma de Fuego, Munición y Artículos. Similares",3
+Cat_015_38,38,"Fabricante de Explosivos",3
+Cat_015_39,39,"Importador de Explosivos",3
+Cat_015_42,42,"Fabricante de Productos Pirotécnicos",3
+Cat_015_43,43,"Importador de Productos Pirotécnicos",3
+Cat_015_44,44,"Productor de Tabaco",3
+Cat_015_50,50,"Distribuidor  de  Bebidas  Gaseosas,  Isotónicas,  Deportivas, Fortificantes, Energizante o Estimulante",3
+Cat_015_51,51,"Bebidas Alcohólicas",3
+Cat_015_52,52,"Cerveza",3
+Cat_015_53,53,"Productos del Tabaco",3
+Cat_015_54,54,"Bebidas Carbonatadas o Gaseosas Simples o Endulzadas",3
+Cat_015_55,55,"Otros Específicos",3
+Cat_015_58,58,"Alcohol",3
+Cat_015_77,77,"Importador de Jugos, Néctares, Bebidas con Jugo y Refrescos",3
+Cat_015_78,78,"Distribuidor de Jugos, Néctares, Bebidas con Jugo y Refrescos",3
+Cat_015_79,79,"Sobre Llamadas Telefónicas Provenientes del Ext.",3
+Cat_015_85,85,"Detallista de Jugos, Néctares, Bebidas con Jugo y Refrescos",3
+Cat_015_86,86,"Fabricante de Preparaciones Concentradas o en Polvo para la Elaboración de Bebidas",3
+Cat_015_91,91,"Fabricante de Jugos, Néctares, Bebidas con Jugo y Refrescos",3
+Cat_015_92,92,"Importador de Preparaciones Concentradas o en Polvo para la Elaboración de Bebidas",3
+Cat_015_A1,A1,"Específicos y Ad-Valorem",3
+Cat_015_A5,A5,"Bebidas Gaseosas, Isotónicas, Deportivas, Fortificantes, Energizantes o Estimulantes",3
+Cat_015_A7,A7,"Alcohol Etílico",3
+Cat_015_A9,A9,"Sacos Sintéticos",3

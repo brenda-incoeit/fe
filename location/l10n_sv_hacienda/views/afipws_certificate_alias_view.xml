@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_afipws_certificate_alias_form" model="ir.ui.view">
+        <field name="name">afipws.certificate_alias.form</field>
+        <field name="model">afipws.certificate_alias</field>
+        <field name="arch" type="xml">
+            <form string="HACIENDA Certificates">
+                <header>
+                    <button name="action_confirm"
+                        type="object"
+                        class="oe_highlight"
+                        string="Confirmar"
+                        help="Confirmar y validar autenticación"
+                        />
+                    <button name="action_cancel"
+                        type="object"
+                        string="Cancelar"
+                        />
+                    <button name="action_to_draft"
+                        type="object"
+                        string="A Borrador"
+                        />
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="type"/>
+                            <field name="company_cuit" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="common_name"/>
+                            <field name="country_id" invisible="1"/>
+                            <field name="state_id" invisible="1"/>
+                            <!-- <field name="city"/> -->
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Certificates">
+                            <field name="certificate_ids"/>
+                        </page>
+                        <page string="Key" groups="base.group_no_one">
+                            <field name="key_file_name"/>
+                            <field name="key_file_text"/>
+                            <field name="key_file"/>
+                            <field name="key"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_afipws_certificate_alias_filter" model="ir.ui.view">
+        <field name="name">afipws.certificate_alias.filter</field>
+        <field name="model">afipws.certificate_alias</field>
+        <field name="arch" type="xml">
+            <search string="HACIENDA Certificates">
+                <field name="type"/>
+                <field name="common_name"/>
+                <field name="company_id"/>
+                <field name="state"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_afipws_certificate_alias_tree" model="ir.ui.view">
+        <field name="name">afipws.certificate_alias.tree</field>
+        <field name="model">afipws.certificate_alias</field>
+        <field name="arch" type="xml">
+            <list string="HACIENDA Certificates">
+                <field name="type"/>
+                <field name="common_name"/>
+                <field name="company_id"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="act_afipws_certificate_alias">
+        <field name="name">HACIENDA Certificate</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">afipws.certificate_alias</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem name="Certificates" action="act_afipws_certificate_alias" id="menu_action_afipws_certificate_alias" parent="menu_afipws"/>
+</odoo>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="view_company_form_l10n_sv">
+            <field name="name">view_company_form_l10n_sv</field>
+            <field name="model">res.company</field>
+            <field name="inherit_id" ref="base.view_company_form"/>
+            <field name="arch" type="xml">
+                <field name="vat" position="after">
+                    <field name="nrc" />
+                    <field name="giro" invisible="1" />
+                    <field name="sit_uuid" />
+                </field>     
+            <!-- <xpath expr="//sheet" position="before">
+                <header>
+                    <button name="generar_uuid"
+                        type="object"
+                        string="Generar uuid"
+                        class="oe_highlight"
+                        help="Genera el UUID de esta instancia, su valor debe ser único"
+                        />
+                </header>
+            </xpath> -->
+            </field>
+        </record>
+    </data>
+</odoo>
+    

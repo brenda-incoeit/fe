@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="ir_cron_token_validation" model="ir.cron">
+        <field name="name">Validación de token en Hacienda</field>
+        <field name="interval_number">24</field>
+        <field name="interval_type">minutes</field>
+        <!-- <field name="numbercall">-1</field> -->
+        <field name="active" eval="True"/>
+        <field name="nextcall" eval="(DateTime.now().replace(hour=2, minute=0) + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')" />
+        <!-- <field name="doall" eval="False"/> Ya no es compatible en la versión 18 porque Odoo maneja esa lógica de forma interna ahora. -->
+        <field name="model_id" ref="model_res_company"/>
+        <field name="code">model.get_generar_token()</field>
+        <field name="state">code</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

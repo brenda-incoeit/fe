@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_afipws_certificate_form" model="ir.ui.view">
+        <field name="name">afipws.certificate.form</field>
+        <field name="model">afipws.certificate</field>
+        <field name="arch" type="xml">
+            <form string="Hacienda Certificates">
+                <header>
+                    <button name="sit_action_upload_certificate"
+                        type="object"
+                        class="oe_highlight"
+                        string="Subir Certificados"
+                        />
+                    <button name="action_confirm"
+                        type="object"
+                        string="Confirmar"
+                        />
+                    <button name="action_to_draft"
+                        type="object"
+                        string="a Borrador"
+                        />
+                    <button name="action_cancel"
+                        type="object"
+                        string="Cancelar"
+                        />
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="alias_id" required="1"/>
+                        <field name="certificate_file"/>
+                        <field name="certificate_file_name"/>
+                        <field name="crt_id" />
+                        <field name="crt_nit" />
+                        <field name="crt_validity_begin" />
+                        <field name="crt_validity_until" />
+                        <field name="crt_organizationName" />
+                        <field name="crt_organizationIdentifier" />
+                        <field name="crt_givenName" />
+                        <field name="certificate_file_text" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_afipws_certificate_tree" model="ir.ui.view">
+        <field name="name">afipws.certificate.tree</field>
+        <field name="model">afipws.certificate</field>
+        <field name="arch" type="xml">
+            <list string="HACIENDA Certificates">
+                <field name="create_date"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+</odoo>

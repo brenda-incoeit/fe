@@ -1,0 +1,15 @@
+id,codigo,valores
+Cat_17_01,01,Billetes y monedas.
+Cat_17_02,02,Tarjeta Débito 
+Cat_17_03,03,Tarjeta Crédito 
+Cat_17_04,04,Cheque 
+Cat_17_05,05,Transferencia_ Depósito Bancario 
+Cat_17_06,06,Vales o Cupones 
+Cat_17_08,08,Dinero electrónico 
+Cat_17_09,09,Monedero electrónico 
+Cat_17_10,10,Certificado o tarjeta de regalo  
+Cat_17_11,11,Bitcoin 
+Cat_17_12,12,Otras Criptomonedas 
+Cat_17_13,13,Cuentas por pagar del receptor 
+Cat_17_14,14,Giro bancario  
+Cat_17_99,99,Otros (se debe indicar el medio de pago) 

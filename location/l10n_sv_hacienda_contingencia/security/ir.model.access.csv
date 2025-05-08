@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+l10n_sv_hacienda_contingencia.access_account_contingencia1,access.account.contingencia1,l10n_sv_hacienda_contingencia.model_account_contingencia1,base.group_user,1,1,1,1

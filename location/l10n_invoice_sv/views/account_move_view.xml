@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_invoice_form_sv" model="ir.ui.view">
+            <field name="name">Invoice Sv</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_move_form"/>
+            <field name="arch" type="xml">
+                    <xpath expr="//button[@class='oe_highlight' and @name='action_invoice_sent']" position="replace">
+                        <button name="sit_action_send_mail" type="object" options="{'invisible': [('state', '!=', 'posted') ]}" string="Enviar Email" class="oe_highlight" groups="account.group_account_invoice"/>
+                        <!-- <button name="action_invoice_sent" type="object" options="{'invisible': [('state', '!=', 'posted') ]}" string="Enviar Factura por Email" class="oe_highlight" groups="account.group_account_invoice"/> -->
+
+                        <button name="action_invoice_sent" invisible="1" type="object" string="Send &amp; Print" options="{'invisible':['|', '|', ('state', '!=', 'posted'), ('is_move_sent', '=', True), ('move_type', 'not in', ('out_invoice', 'out_refund'))]}" class="oe_highlight"/>
+                        <!-- <button name="action_invoice_print" type="object" string="Imprimir" options="{'invisible':['|', '|', ('state', '!=', 'posted'), ('is_move_sent', '=', True), ('move_type', 'not in', ('out_invoice', 'out_refund'))]}" class="oe_highlight"/> -->
+                    </xpath>
+                    <xpath expr="//button[@name='action_invoice_sent'][2]" position="replace">
+                        <button name="action_invoice_print" type="object" string="Imprimir" options="{'invisible':['|', '|', ('state', '!=', 'posted'), ('is_move_sent', '=', False), ('move_type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund'))]}"/>
+                        <button name="action_invoice_sent" invisible="1" type="object" string="Send &amp; Print" options="{'invisible':['|', '|', ('state', '!=', 'posted'), ('is_move_sent', '=', False), ('move_type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund'))]}"/>
+                    </xpath>
+                    <xpath expr="//field[@name='narration']" position="before">
+                        <field class="oe_left" name="amount_text" placeholder="amount to text"/>
+                    </xpath>
+                    <xpath expr="//field[@name='payment_reference']" position="before">
+                        <field name="inv_refund_id"
+                               string="Factura Rectificativa"
+                               options="{'invisible': ['|', ('move_type', '!=', 'out_invoice'),('payment_state', '!=', 'reversed')]}"
+                               readonly="True" />
+
+                    </xpath>
+                    <xpath expr="//field[@name='state']" position="replace">
+                        <field name="state" options="{'invisible':[('state_refund','=','refund')]}" widget="statusbar" statusbar_visible="draft,posted"/>
+                        <field name="state_refund" options="{'invisible':[('state_refund','!=','refund')]}" statusbar_visible="refund" widget="statusbar" nolabel="1"/>
+                    </xpath>
+                    <!-- <xpath expr="//h1/field[@name='name']" position="after">
+                        <field name="attachment_ids" invisible="0"/>
+                    </xpath>
+ -->
+            </field>
+        </record>
+        <record id="view_invoice_sv_tree" model="ir.ui.view">
+            <field name="name">Invoice Refund</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_invoice_tree"/>
+            <field name="arch" type="xml">
+                    <xpath expr="//list" position="inside">
+                        <field name="state_refund" optional="show"/>
+                    </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

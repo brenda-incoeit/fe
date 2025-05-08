@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+	<record model="ir.ui.view" id="view_company_certificates_sv">
+		<field name="name">view_company_certificates_sv</field>
+		<field name="model">res.company</field>
+		<field name="priority">60</field>
+		<field name="inherit_id" ref="base.view_company_form" />
+		<field name="arch" type="xml">
+			<xpath expr="//page/group[1]" position="after">
+				<group>
+					<separator string="Información para Hacienda" class="mt32 o_group_col_12" colspan="4" />
+					<group>
+						<field name="codActividad" string="codActividad" readonly="0" />
+						<field name="tipoEstablecimiento" string="tipoEstablecimiento" readonly="0" />
+					</group>
+				</group>
+			</xpath>
+			<xpath expr="//sheet" position="before">
+				<header>
+					<button name="test_connection" type="object" string="Probar conexión con Hacienda" class="oe_highlight" help="Confirmar y validar autenticación" />
+					<!-- <field name="state" widget="statusbar"/> -->
+				</header>
+			</xpath>
+			<xpath expr="//page[@name='general_info']" position="after">
+				<page string="Certificados" name="hacienda_certificates">
+					<group>
+						<separator string="Credenciales Hacienda" class="mt32 o_group_col_12" colspan="4" />
+						<group>
+							<field name="sit_token_user" string="Usuario (NIT)" />
+							<field name="sit_token_pass" string="Password (Contraseña de API)"  password="True"/>
+							<field name="sit_passwordPri" string="Password Firmado (contraseña Privada)" password="True"/>
+						</group>
+						<separator string="Certificados Cargados" class="mt32 o_group_col_12" colspan="4" />
+						<group>
+							<field name="alias_ids" string="Alias" />
+						</group>
+						<separator string="Token" class="mt32 o_group_col_12" colspan="4" />
+						<group>
+							<field name="sit_token_fecha" string="Ultima fecha de actualización de token" />
+							<field name="sit_token" string="Token" />
+							<div>
+								<button name="get_limpiar_token" string="Limpiar Token" type="object" class="oe_inline fa fa-arrow-right oe_link" />
+							</div>
+							<div>
+								<button name="get_generar_token" string="Generar Token" type="object" class="oe_inline fa fa-arrow-right oe_link" />
+							</div>
+						</group>
+					</group>
+					<group>
+						<separator string="Connection Instructions" class="mt32 o_group_col_12" colspan="4" />
+					</group>
+				</page>
+			</xpath>
+		</field>
+	</record>
+</odoo>

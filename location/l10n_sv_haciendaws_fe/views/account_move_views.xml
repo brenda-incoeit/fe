@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_move_form" model="ir.ui.view">
+        <field name="model">account.move</field>
+        <field name="name">account.move.afip.form</field>
+        <field name="inherit_id" ref="l10n_invoice_sv.view_invoice_form_sv"/>
+        <field name="arch" type="xml">
+            <!-- we change button labels for better usability -->
+            <button name="action_post" position="attributes">
+                <attribute name="invisible">['|', ('state', '!=', 'draft'), ('validation_type', '!=', False)]</attribute>
+            </button>
+            <button name="action_post" position="replace">
+                <!-- <button name="action_post" type="object" string="Validar en PROD HACIENDA" class="oe_highlight" groups="account.group_account_invoice"/>
+                <button name="action_post" type="object" string="Validar en TEST" class="oe_highlight" groups="account.group_account_invoice"/> -->
+                <!-- <button name="generar_qr" string="Generar QR" type="object" class="oe_highlight" /> -->
+            </button>
+            <!-- <field name="l10n_ar_afip_concept" position="after"> -->
+            <group name="sale_info_group" position="after">
+                <group string="Factura Hacienda" name="sale_hacienda_info_group" >
+                    <field name="afip_fce_es_anulacion"/>
+                    <label for="afip_auth_code" string="HACIENDA associated period" options="{'invisible': [('move_type', 'not in', ['out_refund'])]}"/>
+                    <field name="afip_auth_code" invisible="1" class="oe_inline" options="{'required': [('afip_auth_mode', '!=', False)]}" placeholder="Code"/> - 
+                    <field name='validation_type' invisible="1"/>
+                    <field name="afip_auth_mode" invisible="1" class="oe_inline"/>
+                    <div class="oe_inline" options="{'invisible': [('move_type', 'not in', ['out_refund'])]}">
+                        <field name="afip_associated_period_from" class="oe_inline" placeholder="Date From"/> -
+                        <field name="afip_associated_period_to" class="oe_inline" placeholder="Date to"/>
+                    </div>
+                </group>
+            </group>
+        </field>
+    </record>
+    <record id="view_hacienda_move_form" model="ir.ui.view">
+        <field name="model">account.move</field>
+        <field name="name">view_hacienda_move_form</field>
+        <field name="inherit_id" ref="l10n_sv.sit_account_move_data_id"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='sit_qr_hacienda']" position="before">
+                <field name='hacienda_estado'/>
+                <field name='hacienda_codigoGeneracion_identificacion'/>
+                <field name='hacienda_codigoGeneracion'/>
+                <field name='hacienda_selloRecibido'/>
+                <field name='fecha_facturacion_hacienda'/>
+                <field name='hacienda_clasificaMsg'/>
+                <field name='hacienda_codigoMsg'/>
+                <field name='hacienda_descripcionMsg'/>
+                <field name='hacienda_observaciones'/>
+            </xpath>
+            <group name="sale_info_group" position="after">
+                <group string="Factura Hacienda" name="sale_hacienda_info_group" >
+                    <field name="afip_fce_es_anulacion"/>
+                    <label for="afip_auth_code" string="HACIENDA associated period" options="{'invisible': [('move_type', 'not in', ['out_refund'])]}"/>
+                    <div class="oe_inline" options="{'invisible': [('move_type', 'not in', ['out_refund'])]}">
+                        <field name="afip_associated_period_from" class="oe_inline" placeholder="Date From"/> -
+                        <field name="afip_associated_period_to" class="oe_inline" placeholder="Date to"/>
+                    </div>
+                </group>
+            </group>
+        </field>
+    </record>
+</odoo>

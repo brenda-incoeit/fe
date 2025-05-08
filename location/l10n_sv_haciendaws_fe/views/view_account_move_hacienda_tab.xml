@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hacienda_move_form" model="ir.ui.view">
+        <field name="name">view.hacienda.move.form</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="priority" eval="20"/>
+        <field name="arch" type="xml">
+            <!-- Agrega los campos después del campo existente 'sit_qr_hacienda' -->
+            <!-- Agrega los campos después del campo existente 'sit_qr_hacienda' -->
+            <xpath expr="//field[@name='sit_qr_hacienda']" position="before">
+                <field name="hacienda_estado"/>
+                <field name="hacienda_codigoGeneracion_identificacion"/>
+                <field name="hacienda_codigoGeneracion"/>
+                <field name="hacienda_selloRecibido"/>
+                <field name="fecha_facturacion_hacienda"/>
+                <field name="hacienda_clasificaMsg"/>
+                <field name="hacienda_codigoMsg"/>
+                <field name="hacienda_descripcionMsg"/>
+                <field name="hacienda_observaciones"/>
+            </xpath>
+
+            <!-- Añadir un nuevo grupo debajo de la sección de información de venta -->
+            <xpath expr="//field[@name='invoice_date']" position="after">
+                <group string="Factura Hacienda" name="sale_hacienda_info_group">
+                    <field name="afip_fce_es_anulacion"/>
+                    <field name="validation_type" invisible="1"/>
+                    <field name="afip_auth_code" invisible="1"/>
+                    <field name="afip_auth_mode" invisible="1"/>
+                    <field name="afip_associated_period_from"/>
+                    <field name="afip_associated_period_to"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

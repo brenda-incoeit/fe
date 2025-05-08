@@ -1,0 +1,12 @@
+id,name,sit_tipo_documento,sit_tipo_establecimiento,code,type
+dc_sv_fe,(FE)Factura,Factura,Casa matriz,"DTE-","sale"
+dc_sv_ccfe,(CCFE)Comprobante de crédito fiscal,Comprobante de crédito fiscal,Casa matriz,"DTE-","sale"
+dc_sv_nre,(NRE)Nota de remisión,Nota de remisión,Casa matriz,"DTE-","sale"
+dc_sv_nce,(NCE) Nota de crédito,Nota de crédito,Casa matriz,"DTE-","sale"
+dc_sv_nde,(NDE) Nota de débito,Nota de débito,Casa matriz,"DTE-","sale"
+dc_sv_cre,(CRE) Comprobante de retención,Comprobante de retención,Casa matriz,"DTE-","sale"
+dc_sv_cle,(DCLE) Comprobante de liquidación,Comprobante de liquidacién,Casa matriz,"DTE-","sale"
+dc_sv_dcle,(DCLE) Documento contable de liquidación,Documento contable de liquidación,Casa matriz,"DTE-","sale"
+dc_sv_fexe,(FEXE) Facturas de exportación,Facturas de exportación,Casa matriz,"DTE-","sale"
+dc_sv_fsee,(FSEE) Factura de sujeto excluido,Factura de sujeto excluido,Casa matriz,"DTE-","sale"
+dc_sv_cde,(CDE) Comprobante de donación,Comprobante de donación,Casa matriz,"DTE-","sale"

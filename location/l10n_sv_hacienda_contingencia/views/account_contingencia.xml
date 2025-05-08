@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_facturas_contingencia_tree" model="ir.ui.view">
+            <field name="name">view_facturas_contingencia.tree</field>
+            <field name="model">account.contingencia1</field>
+            <field name="arch" type="xml">
+                <tree string="Facturas de contingencia"
+                      js_class="account_tree"
+                      decoration-info="state == 'draft'"
+                      decoration-muted="state == 'cancel'"
+                      expand="context.get('expand', False)"
+                      sample="1">
+                    <field name="state" widget="badge" decoration-success="state == 'posted'" decoration-info="state == 'draft'" optional="show"/>
+                        <field name="name" readonly="state != 'draft'" placeholder="Factura de Contingencia"/>
+                        <field name="journal_id" invisible="0"/>
+                        <field name="invoice_user_id" invisible="0"/>
+                        <field name="company_id" invisible="0"/>
+                        <field name="fechaHoraTransmision" invisible="0"/>
+                        <field name="sit_fInicio_hInicio" invisible="0"/>
+                        <field name="sit_fFin_hFin" invisible="0"/>
+                        <field name="sit_facturas_relacionadas" invisible="0"/>
+                  </tree>
+            </field>
+        </record>
+        <record id="view_contingencia_form" model="ir.ui.view">
+            <field name="name">view_contingencia.form</field>
+            <field name="model">account.contingencia1</field>
+            <field name="arch" type="xml">
+                <form string="Account Entry" js_class="account_move_form">
+                    <header>
+                        <!-- Post -->
+                        <button name="action_post_contingencia" string="Validar Contingencia" class="oe_highlight"
+                                type="object" groups="account.group_account_invoice" data-hotkey="v"
+                                context="{'validate_analytic': True}"/>
+                        <button name="action_lote_generate" string="Generar DTE de Lote" class="oe_highlight"
+                                type="object" groups="account.group_account_invoice" data-hotkey="v"
+                                context="{'validate_analytic': True}"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,posted,posted_lote"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" readonly="state != 'draft'" placeholder="Factura de Contingencia"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group id="header_left_group">
+                                <field name="journal_id" invisible="0"/>
+                                <field name="invoice_user_id" invisible="0"/>
+                                <field name="company_id" invisible="0"/>
+                                <field name="fechaHoraTransmision" invisible="0"/>
+                                <field name="sit_fInicio_hInicio" invisible="0"/>
+                                <field name="sit_fFin_hFin" invisible="0"/>
+                            </group>
+                            <group id="header_right_group">
+                                <field name="sit_tipo_contingencia" invisible="0"/>
+                                <field name="sit_tipo_contingencia_otro" invisible="0"/>
+                            </group>
+                        </group>     
+                        <notebook>
+                            <page id="facturas_relacionadas" string="Facturas Relacionadas" name="facturas_relacionadas">    
+                                <group id="other_tab_group">
+                                    <field name="sit_facturas_relacionadas" invisible="0"/>
+                                </group>
+                            </page>
+                            <page id="respuesta_hacienda" string="Respuesta Hacienda" name="respuesta_hacienda">                                  
+                                <group id="other_tab_group">
+                                    <group string="Estado Hacienda" name="sale_info_group" >
+                                        <field name="sit_estado" string="Estado" invisible="0"/>
+                                        <field name="sit_fechaHora" string="Fecha/Hora" invisible="0"/>
+                                        <field name="sit_mensaje" string="Mensaje" invisible="0"/>
+                                        <field name="sit_selloRecibido" string="Sello Recibido" invisible="0"/>
+                                        <field name="sit_observaciones" string="Observaciones" invisible="0"/>
+                                        <field name="hacienda_estado" string="Estado" invisible="0"/>
+                                    </group>
+                                    <group string="" name="accounting_info_group">
+                                    </group>
+                                </group>
+                            </page>
+                    <page id="sit_lote_haciendda" string="Certificado Lote Hacienda" name="certificado_lote_hacienda"  invisible="sit_selloRecibido == False">
+                        <group id="lote_group">
+                            <group name="lote_group_left">
+                                <field name='hacienda_estado_lote'/>
+                                <field name='hacienda_idEnvio_lote'/>
+                                <field name='hacienda_fhProcesamiento_lote'/>
+                                <field name='hacienda_codigoLote_lote'/>
+                                <field name='hacienda_codigoMsg_lote'/>
+                                <field name='hacienda_descripcionMsg_lote'/>
+                            </group>
+                        </group>
+                    </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+    </data>
+</odoo>

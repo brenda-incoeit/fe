@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+    <odoo>
+        <data>
+            <record model="ir.ui.view" id="sit_ir_sequence_form_l10n_sv">
+                <field name="name">sit_ir_sequence_form_l10n_sv</field>
+                <field name="model">ir.sequence</field>
+                <field name="inherit_id" ref="base.sequence_view"/>
+                <field name="arch" type="xml">
+
+                    <field name="implementation" position="after">
+                        <field name="l10n_latam_journal_id" string="Diario" options="{'no_open': True, 'no_create': True}"/>
+                        <!-- <field name="l10n_latam_document_type_id" string="Tipo de Documento" options="{'no_open': True, 'no_create': True}"/> -->
+                    </field>
+            
+
+                </field>
+            </record>
+        </data>
+    </odoo>
+    
+
+
+

@@ -1,0 +1,6 @@
+id,name,sequence,is_vat,codigo
+l10n_latam_base.it_vat,NIT,80,TRUE,36
+l10n_latam_base.it_dui,DUI,90,TRUE,13
+l10n_latam_base.it_otro,Otro,100,,37
+l10n_latam_base.it_pass,Passport,110,,03
+l10n_latam_base.it_fid,Carnet de Residente ,120,,02

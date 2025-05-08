@@ -1,0 +1,242 @@
+<?xml version="1.0"?>
+<t t-name="l10n_invoice_sv.report_invoice_tck">
+			<t t-set="o" t-value="o.with_context({'lang':o.partner_id.lang})"/>
+         <div class="header">
+      </div>
+      <div class="page" style="0px solid black;">
+        <style type="text/css">
+          .invoiceLine{
+            /*font-size:7px;
+            font-weight: 100;*/
+          }
+          #amountTotal{
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            text-align: center;
+          }
+          #invoice--lines{
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+          }
+          .invoiceLine--product{
+            padding-left: 10px;
+            text-align: letf;
+            
+          }
+          #encabezado{
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            text-align: center;
+          }
+          .write{
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+          }
+          .toWrite{
+            border: 1px solid black;
+          }
+          .logo--container{
+            border-bottom: 2px solid black;
+            padding-bottom: 3px;
+            padding-top: 4px;
+            width: 100%;
+            height: 115px;
+            background-position: center center;
+            background-repeat: no-repeat;
+            overflow: hidden;
+          }
+          .company--logo{
+            min-height: 115%;
+            min-width: 100%;
+            padding-top: 4px;
+            /* IE 8 */
+            -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
+            /* IE 5-7 */
+            filter: alpha(opacity=0);
+            /* modern browsers */
+            opacity: 0;
+          }
+          .table--companyInfo{
+            margin-top: 3px;
+            width: 100%;
+          }
+          .table--companyInfo tr td:first-child{
+            text-align: center;
+            padding-right: 5px;
+          }
+	  .date_time{
+		width: 100%;
+		
+	  }
+	  .date_time tr td:nth-child(2){
+            text-align: right;
+          }
+          .cashier--name{
+            border-top: 2px solid black;
+            border-bottom: 2px solid black;
+            padding-top: 3px;
+            padding-bottom: 3px;
+          }
+          .slogan{
+            border-top: 2px solid black;
+            border-bottom: 2px solid black;
+            padding-top: 3px;
+            padding-bottom: 3px;
+          }
+        </style>
+        <br/>
+        <br/>
+        <div align="center" style="font-size:18px"><strong> No. de  <span  style="font-size: 18px;" t-esc="o.pos_order_id.pos_reference"/></strong></div>
+        <br/>
+        <div class="logo--container" style="background-image: url('/web/binary/company_logo')">
+          <img class="company--logo" src='/web/binary/company_logo' alt="Logo"/>
+        </div>
+        <div align="center" style="font-size:18px"><strong>CASA BLANCA RESTAURANT</strong></div>
+        <div align="center" style="font-size:15px"><strong></strong></div>
+        <div class="text-center">DIRECCION</div><div class="text-center"><span t-esc="o.company_id.partner_id.street"/></div>
+        <div class="text-center">TEL: 2697-2456</div>
+        <div class="text-center">WHATSAPP: 7513-8279</div>
+        
+        <div class="text-center">TICKET: <span  style="font-size: 13px;" t-esc="o.number"/></div>
+        
+        
+        
+        
+  
+	<table class="date_time">
+	    <tr>
+		<td><span t-esc="context_timestamp(datetime.datetime.now()).strftime('%d/%m/%Y')"/></td>
+		<td><span t-esc="context_timestamp(datetime.datetime.now()).strftime('%I:%M %p')"/></td>
+            </tr>
+	</table>
+    <div class="cashier--name">
+      CAJERO: <span t-esc="o.user_id.name"/><br/>
+      MESA: <span t-esc="o.pos_order_id.table_id.name"/><br/>
+	    CLIENTE:   <span  t-esc="o.partner_id.name"/><br/>
+	    DIRECCION: <span  t-esc="o.partner_id.street"/><br/>
+      TELEFONO:  <span  t-esc="o.partner_id.phone"/><br/>
+	  </div>
+        <table id="invoice--lines">
+              <tr>
+                <td class="text-center" style="width: 12%">
+                Cant.
+                </td>
+                <td class="text-center" style="width: 65%">
+                Producto
+                </td>
+                <td class="text-centerr" style="width: 15%">
+                P/Uni.
+                </td>
+                <td class="text-center" style="width: 15%">
+                Total
+                </td>
+              </tr>
+              <t t-foreach="o.invoice_line_ids" t-as="line">
+                <tr>
+                  <td class="text-leftt">
+                    <span class="invoiceLine invoiceLine--qty" t-esc="'{qty:.0f}'.format(qty=line.quantity)"/>
+                  </td>
+                  <td class="text-left">
+                    <span  style="font-size: 13px;" t-esc="line.product_id.name"/>
+                    <t t-foreach="line.product_id.pos_combo_item_ids" t-as="combo">
+                      <br/>
+                      <br/>
+                      <span class="invoiceLine invoiceLine--product" t-esc="combo.product_id.name.upper()"/>
+                    </t>
+                  </td>
+                  <td class="text-right">
+                    <span class="invoiceLine invoiceLine--priceUnit" t-esc="'{price:.2f}'.format(price=line.price_unit)"/>
+                  </td>
+                  <td class="text-right">
+                    <span class="invoiceLine invoiceLine--priceSubtotal" t-esc="'{total:.2f}'.format(total=line.price_unit*line.quantity)"/>
+                  </td>
+                </tr>
+              </t>
+      </table>
+      <br/>
+		  <div class="text-center slogan">
+       <span t-esc="o.company_id.report_header"/>
+	    	<table id="amountTotal">
+	    	   <tr>
+         <td class="text-left">
+          SUB TOTAL: 
+        </td>
+        <td class="text-right">
+         <span style="font-size: 15px; font-weight: 700;" t-esc="'{amount:.2f}'.format(amount=round(o.amount_untaxed,2))"/>
+        </td>
+      </tr>
+       <tr>
+         <td class="text-left">
+           PROPINA 10%: 
+        </td>
+        <td class="text-right">
+          <span style="font-size: 15px; font-weight: 700;" t-esc="'{amount:.2f}'.format(amount=round(o.amount_tax,2))"/>
+        </td>
+      </tr>
+	    
+       <tr>
+         <td class="text-left">
+           TOTAL GENERAL: 
+        </td>
+        <td class="text-right">
+          <span style="font-size: 15px; font-weight: 700;" t-esc="' $ {amount:.2f}'.format(amount=round(o.amount_untaxed,2)+round(o.amount_tax,2))"/>
+        </td>
+      </tr>
+  
+      <tr>
+	      <td class="text-left">
+           TOTAL ENTREGADO
+        </td>
+        <td class="text-right">
+          <span id="amount_paid" t-esc="' $ {amount:.2f}'.format(amount=o.pos_order_return_id.amount_paid)"/>
+        </td>
+      </tr>
+      <tr>
+      <td class="text-left">
+            CAMBIO: 
+        </td>
+        <td class="text-right">
+          <span id="amountTotal" t-esc="' $ {amount:.2f}'.format(amount=o.pos_order_return_id.amount_return)"/>
+        </td>
+       </tr>
+        <tr>
+          <td class="text-center">
+            TIPO DE PAGO:       
+          </td>
+        </tr>
+  
+    </table>
+        <div class="text-center slogan">
+         <span t-esc="o.company_id.report_header"/>
+        </div>  
+    <table id="amountTotal" >
+      <t t-foreach="o.pos_order_id.statement_ids" t-as="record">
+        <tr>
+          <td class="text-left">
+            <span  t-esc="record.journal_id.name"/>
+          </td>
+          <td class="text-right">
+            <span   style="font-size: 15px; font-weight: 700;" t-esc="' $ {amount:.2f}'.format(amount=record.amount)"/>
+           <!--  <span  t-esc="record.amount"/> -->
+          </td>
+        </tr>
+      </t>
+    </table>
+   
+    <div class="text-center slogan">
+      <span t-esc="o.company_id.report_header"/>
+      <div class="footer">
+     </div>
+      <div style="font-size: 15px; font-weight: 700;">
+        <td class="text-center">
+           "GRACIAS POR PREFERIRNOS, LO ESPERAMOS PRONTO"
+         </td>
+      </div>
+     </div>
+    </div>
+   </div>
+	</t>

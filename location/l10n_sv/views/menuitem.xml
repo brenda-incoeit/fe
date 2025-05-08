@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="action_tipo_documento" model="ir.actions.act_window">
+            <field name="name">Tipo de Documento</field>
+            <field name="res_model">account.journal.tipo_documento.field</field>
+            <field name="view_mode">list</field>
+            <field name="search_view_id" ref="view_account_journal_tipo_documento_field"/>
+        </record>
+
+        <record id="action_tipo_contingencia" model="ir.actions.act_window">
+            <field name="name">Tipo de Contingencia</field>
+            <field name="res_model">account.move.tipo_contingencia.field</field>
+            <field name="view_mode">list</field>
+            <field name="search_view_id" ref="view_account_move_tipo_contingencia_field"/>
+        </record>
+
+
+        <record id="action_tipo_establecimiento" model="ir.actions.act_window">
+            <field name="name">Tipo de Establecimiento</field>
+            <field name="res_model">account.move.tipo_establecimiento.field</field>
+            <field name="view_mode">list</field>
+            <field name="search_view_id" ref="view_account_move_tipo_establecimiento_field"/>
+        </record>
+
+        <record id="action_tipo_item" model="ir.actions.act_window">
+            <field name="name">Tipo de Item</field>
+            <field name="res_model">account.move.tipo_item.field</field>
+            <field name="view_mode">list</field>
+            <field name="search_view_id" ref="view_account_move_tipo_item_field"/>
+        </record>
+
+        <record id="action_unidad_medida" model="ir.actions.act_window">
+            <field name="name">Unidad de Medida Hacienda</field>
+            <field name="res_model">account.move.unidad_medida.field</field>
+            <field name="view_mode">list</field>
+            <field name="search_view_id" ref="view_account_move_unidad_medida_field"/>
+        </record>
+        <record id="action_tributos" model="ir.actions.act_window">
+            <field name="name">Tributos Hacienda</field>
+            <field name="res_model">account.move.tributos.field</field>
+            <field name="view_mode">list</field>
+            <field name="search_view_id" ref="view_account_move_tributos_field"/>
+        </record>
+        <record id="action_forma_pago" model="ir.actions.act_window">
+            <field name="name">Forma de Pago</field>
+            <field name="res_model">account.move.forma_pago.field</field>
+            <field name="view_mode">list</field>
+            <field name="search_view_id" ref="view_account_move_forma_pago_field"/>
+        </record>
+    <!-- other certificate menu in accounting, we use this in planner -->
+    <!-- <menuitem name="Certificates" action="l10n_sv_hacienda.act_afipws_certificate_alias" id="menu_action_afipws_certificate_alias" sequence="99" parent="l10n_ar.menu_afip_config"/> -->
+
+        <record id="action_plazo" model="ir.actions.act_window">
+            <field name="name">Plazo</field>
+            <field name="res_model">account.move.plazo.field</field>
+            <field name="view_mode">list</field>
+            <field name="search_view_id" ref="view_account_move_plazo_field"/>
+        </record>
+
+        <record id="action_actividad_economica" model="ir.actions.act_window">
+            <field name="name">Actividad Económica</field>
+            <field name="res_model">account.move.actividad_economica.field</field>
+            <field name="view_mode">list</field>
+            <field name="search_view_id" ref="view_account_move_actividad_economica_field"/>
+        </record>
+
+        <record id="action_otros_documentos_asociados" model="ir.actions.act_window">
+            <field name="name">Otor documentos asociados</field>
+            <field name="res_model">account.move.otros_documentos.field</field>
+            <field name="view_mode">list</field>
+            <field name="search_view_id" ref="view_account_move_otros_documentos_field"/>
+        </record>
+
+        <record id="action_documentos_contingencia" model="ir.actions.act_window">
+            <field name="name">Documentos Contingencia</field>
+            <field name="res_model">account.move.tipo_documento_contingencia.field</field>
+            <field name="view_mode">list</field>
+            <field name="search_view_id" ref="view_account_move_tipo_documento_contingencia_field"/>
+        </record>
+
+        <record id="action_tipo_invalidacion" model="ir.actions.act_window">
+            <field name="name">Tipo de Invalidación</field>
+            <field name="res_model">account.move.tipo_invalidacion.field</field>
+            <field name="view_mode">list</field>
+            <field name="search_view_id" ref="view_account_move_tipo_invalidacion_field"/>
+        </record>
+
+        <record id="action_tipo_donacion" model="ir.actions.act_window">
+            <field name="name">Tipo de donación</field>
+            <field name="res_model">account.move.tipo_donacion.field</field>
+            <field name="view_mode">list</field>
+            <field name="search_view_id" ref="view_account_move_tipo_donacion_field"/>
+        </record>
+
+        <record id="action_recinto_fiscal" model="ir.actions.act_window">
+            <field name="name">Recinto Fiscal</field>
+            <field name="res_model">account.move.recinto_fiscal.field</field>
+            <field name="view_mode">list</field>
+            <field name="search_view_id" ref="view_account_move_recinto_fiscal_field"/>
+        </record>
+
+        <record id="action_regimen" model="ir.actions.act_window">
+            <field name="name">Regimen</field>
+            <field name="res_model">account.move.regimen.field</field>
+            <field name="view_mode">list</field>
+            <field name="search_view_id" ref="view_account_move_regimen_field"/>
+        </record>
+
+        <record id="action_tipo_persona" model="ir.actions.act_window">
+            <field name="name">Tipo de Persona</field>
+            <field name="res_model">account.move.tipo_persona.field</field>
+            <field name="view_mode">list</field>
+            <field name="search_view_id" ref="view_account_move_tipo_persona_field"/>
+        </record>
+
+        <record id="action_transporte" model="ir.actions.act_window">
+            <field name="name">Transporte</field>
+            <field name="res_model">account.move.transporte.field</field>
+            <field name="view_mode">list</field>
+            <field name="search_view_id" ref="view_account_move_transporte_field"/>
+        </record>
+
+        <record id="action_domicilio_fiscal" model="ir.actions.act_window">
+            <field name="name">Domicilio Fiscal</field>
+            <field name="res_model">account.move.domicilio_fiscal.field</field>
+            <field name="view_mode">list</field>
+            <field name="search_view_id" ref="view_account_move_domicilio_fiscal_field"/>
+        </record>
+t
+        <record id="action_tipo_modelo" model="ir.actions.act_window">
+            <field name="name">Tipo de Modelo</field>
+            <field name="res_model">account.journal.tipo_modelo.field</field>
+            <field name="view_mode">list</field>
+            <field name="search_view_id" ref="view_account_journal_tipo_modelo_field"/>
+        </record>
+
+        <record id="action_tipo_operacion" model="ir.actions.act_window">
+            <field name="name">Tipo de Operación</field>
+            <field name="res_model">account.move.tipo_operacion.field</field>
+            <field name="view_mode">list</field>
+            <field name="search_view_id" ref="view_account_move_tipo_operacion_field"/>
+        </record>
+
+    <menuitem name="Catalogos1" id="menu_catalogos" sequence="20" parent="account.menu_finance_configuration">
+        <menuitem id="menu_action_tipo_documento" name="02-Tipo de Documento" action="action_tipo_documento" groups="base.group_system" sequence="1"/>
+        <menuitem id="menu_action_tipo_contingencia" name="05-Tipo de Contingencia" action="action_tipo_contingencia" groups="base.group_system" sequence="2"/>
+        <menuitem id="menu_action_tipo_establecimiento" name="09-Tipo de Establecimiento" action="action_tipo_establecimiento" groups="base.group_system" sequence="3"/>
+        <menuitem id="menu_action_tipo_item" name="11-Tipo de Item" action="action_tipo_item" groups="base.group_system" sequence="4"/>
+        <menuitem id="menu_action_forma_pago" name="17-Forma de Pago" action="action_forma_pago" groups="base.group_system" sequence="5"/>
+        <menuitem id="menu_action_plazo" name="18-Plazo" action="action_plazo" groups="base.group_system" sequence="6"/>
+        <!-- <menuitem id="menu_action_plazo" name="Plazo" action="action_plazo" groups="base.group_system" sequence="4"/> -->
+        <menuitem id="menu_action_actividad_economica" name="19-Actividad Económica" action="action_actividad_economica" groups="base.group_system" sequence="7"/>
+        <menuitem id="menu_action_otros_documentos_asociados" name="21-Otros documentos Asociados" action="action_otros_documentos_asociados" groups="base.group_system" sequence="8"/>
+        <menuitem id="menu_action_documentos_contingencia" name="23-Documentos contingencia" action="action_documentos_contingencia" groups="base.group_system" sequence="9"/>
+        <menuitem id="menu_action_tipo_invalidacion" name="24-tipo invalidación" action="action_tipo_invalidacion" groups="base.group_system" sequence="10"/>
+        <menuitem id="menu_action_tipo_donacion" name="26-Tipo de donación" action="action_tipo_donacion" groups="base.group_system" sequence="11"/>
+        <menuitem id="menu_action_recinto_fiscal" name="27-Recinto Fiscal" action="action_recinto_fiscal" groups="base.group_system" sequence="12"/>
+        <menuitem id="menu_action_regimen" name="28-Regimen" action="action_regimen" groups="base.group_system" sequence="13"/>
+        <menuitem id="menu_action_tipo_persona" name="29-Tipo Persona" action="action_tipo_persona" groups="base.group_system" sequence="14"/>
+        <menuitem id="menu_action_transporte" name="30-Transporte" action="action_transporte" groups="base.group_system" sequence="15"/>
+        <menuitem id="menu_action_domicilio_fiscal" name="32-Domicilio Fiscal" action="action_domicilio_fiscal" groups="base.group_system" sequence="16"/>
+
+
+    </menuitem>
+
+    </data>
+</odoo>

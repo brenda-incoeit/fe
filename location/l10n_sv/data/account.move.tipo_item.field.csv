@@ -1,0 +1,5 @@
+id,codigo,valores
+Cat_011_01,1,"Bienes"
+Cat_011_02,2,"Servicios"
+Cat_011_03,3,"Ambos (Bienes y Servicios, incluye los dos inherente a los Productos o servicios)"
+Cat_011_04,4,"Otros tributos por ítem"

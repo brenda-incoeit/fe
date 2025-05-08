@@ -1,0 +1,8 @@
+id,codigo,valores
+Cat_023_01,01,Factura Electrónico  
+Cat_023_03,03,Comprobante de Crédito Fiscal Electrónico 
+Cat_023_04,04,Nota de Remisión Electrónica 
+Cat_023_05,05,Nota de Crédito Electrónica 
+Cat_023_06,06,Nota de Débito Electrónica 
+Cat_023_11,11,Factura de Exportación Electrónica 
+Cat_023_14,14,Factura de Sujeto Excluido Electrónica 

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sit_contingencia1_view_move_form" model="ir.ui.view">
+        <field name="model">account.move</field>
+        <field name="name">sit_contingencia1_view_move_form</field>
+        <field name="inherit_id" ref="l10n_invoice_sv.view_invoice_form_sv"/>
+        <field name="arch" type="xml">
+            <button name="action_post" position="replace">
+                <button name="action_post" type="object" 
+                    invisible="['|', ('state', '!=', 'draft'), ('validation_type', '!=', 'production')]" 
+                    string="Validar (C) en PROD HACIENDA" class="oe_highlight" groups="account.group_account_invoice"/>
+                    <button name="action_post" type="object" 
+                    invisible="['|', ('state', '!=', 'draft'), ('validation_type', '!=', 'homologation')]" 
+                    string="Validar (C) en TEST" class="oe_highlight" groups="account.group_account_invoice"/>
+                    <field name="sit_es_configencia" invisible="0"/>        
+            </button>
+            <xpath expr="//sheet[1]/div[1]" position="after">
+                <widget name="web_ribbon" title="Contingencia" bg_color="bg-warning" 
+                        invisible="['|', ('sit_es_configencia', '=', False)]"/>
+                <widget name="web_ribbon" title="Congin" 
+                        invisible="[('payment_state', '!=', 'paid'), '|', ('move_type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt'))]"/>
+                <button name="action_post_contingencia" type="object" 
+                        invisible="['|', ('state', '!=', 'draft'), ('sit_es_configencia', '=', False)]" 
+                        string="Validar Contingencia" class="oe_highlight" groups="account.group_account_invoice"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="sit_contingencia_account_move_data_id" model="ir.ui.view">
+            <field name="name">sit_contingencia_account_move_data_id</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_move_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='name']" position="after">
+                    <label for="sit_es_configencia"></label>
+                    <!-- <field name="sit_es_configencia"  widget="boolean_toggle" invisible="0" /> -->
+                    <field name="sit_factura_de_contingencia"  invisible="sit_es_configencia == 'False'"  options="{'no_open': True, 'no_create': True}"/>
+                </xpath>
+            </field>
+    </record>
+</odoo>

@@ -1,0 +1,4 @@
+        <record id="SIT_ID" model="SIT_MODEL">
+            <field name="codigo">SIT_CODIGO</field>
+            <field name="valores">SIT_VALORES</field>
+        </record>

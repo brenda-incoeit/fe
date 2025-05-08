@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="sit_catalogo_cat-021_1" model="account.move.otros_documentos.field">
+            <field name="codigo">1</field>
+            <field name="valores">Emisor </field>
+        </record>
+        <record id="sit_catalogo_cat-021_2" model="account.move.otros_documentos.field">
+            <field name="codigo">2</field>
+            <field name="valores">Receptor </field>
+        </record>
+        <record id="sit_catalogo_cat-021_3" model="account.move.otros_documentos.field">
+            <field name="codigo">3</field>
+            <field name="valores">Médico (solo aplica para contribuyentes obligados a la presentación de          F-958) </field>
+        </record>
+        <record id="sit_catalogo_cat-021_4" model="account.move.otros_documentos.field">
+            <field name="codigo">4</field>
+            <field name="valores">Transporte (solo aplica para Factura de exportación) </field>
+        </record>
+        <record id="sit_catalogo_cat-024_1" model="account.move.tipo_invalidacion.field">
+            <field name="codigo">1</field>
+            <field name="valores">Error en la Información del Documento Tributario Electrónico a invalidar. </field>
+        </record>
+        <record id="sit_catalogo_cat-024_2" model="account.move.tipo_invalidacion.field">
+            <field name="codigo">2</field>
+            <field name="valores">Rescindir de la operación realizada. </field>
+        </record>
+        <record id="sit_catalogo_cat-024_3" model="account.move.tipo_invalidacion.field">
+            <field name="codigo">3</field>
+            <field name="valores">Otro </field>
+        </record>
+        <record id="sit_catalogo_cat-026_1" model="account.move.tipo_donacion.field">
+            <field name="codigo">1</field>
+            <field name="valores">Efectivo </field>
+        </record>
+        <record id="sit_catalogo_cat-026_2" model="account.move.tipo_donacion.field">
+            <field name="codigo">2</field>
+            <field name="valores">Bien </field>
+        </record>
+        <record id="sit_catalogo_cat-026_3" model="account.move.tipo_donacion.field">
+            <field name="codigo">3</field>
+            <field name="valores">Servicio </field>
+        </record>
+        <record id="sit_catalogo_cat-029_1" model="account.move.tipo_persona.field">
+            <field name="codigo">1</field>
+            <field name="valores">Persona Natural </field>
+        </record>
+        <record id="sit_catalogo_cat-029_2" model="account.move.tipo_persona.field">
+            <field name="codigo">2</field>
+            <field name="valores">Persona Jurídica </field>
+        </record>
+        <record id="sit_catalogo_cat-030_1" model="account.move.transporte.field">
+            <field name="codigo">1</field>
+            <field name="valores">Terrestre </field>
+        </record>
+        <record id="sit_catalogo_cat-030_2" model="account.move.transporte.field">
+            <field name="codigo">2</field>
+            <field name="valores">Marítimo </field>
+        </record>
+        <record id="sit_catalogo_cat-030_3" model="account.move.transporte.field">
+            <field name="codigo">3</field>
+            <field name="valores">Aéreo </field>
+        </record>
+        <record id="sit_catalogo_cat-030_4" model="account.move.transporte.field">
+            <field name="codigo">4</field>
+            <field name="valores">Multimodal, Terrestre-marítimo </field>
+        </record>
+        <record id="sit_catalogo_cat-030_5" model="account.move.transporte.field">
+            <field name="codigo">5</field>
+            <field name="valores">Multimodal, Terrestre-aéreo </field>
+        </record>
+        <record id="sit_catalogo_cat-030_6" model="account.move.transporte.field">
+            <field name="codigo">6</field>
+            <field name="valores">Multimodal, Marítimo- aéreo </field>
+        </record>
+        <record id="sit_catalogo_cat-030_7" model="account.move.transporte.field">
+            <field name="codigo">7</field>
+            <field name="valores">Multimodal, Terrestre-Marítimo- aéreo </field>
+        </record>
+        <record id="sit_catalogo_cat-032_1" model="account.move.domicilio_fiscal.field">
+            <field name="codigo">1</field>
+            <field name="valores">Domiciliado </field>
+        </record>
+        <record id="sit_catalogo_cat-032_2" model="account.move.domicilio_fiscal.field">
+            <field name="codigo">2</field>
+            <field name="valores">No Domiciliado </field>
+        </record>
+
+    </data>
+</odoo>

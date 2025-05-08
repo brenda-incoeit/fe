@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+        <record model="ir.ui.view" id="view_move_form_anul_invoice_sv">
+            <field name="name">view_move_form_anul_invoice_sv</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_move_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//button[@name='button_cancel']" position="after">
+                    <button name="button_anul" string="Anular factura" type="object" invisible="state == 'draft' or state == 'annulment'"/>
+                </xpath>
+                <!-- <xpath expr="//button[@name='button_cancel']" position="after">
+                     <button name="button_draft" string="Reset to Draft" type="object" groups="account.group_account_invoice"
+                                data-hotkey="q" />
+                </xpath> -->
+               
+        </field>
+</record>
+
+    <record id="view_hacienda_move_anulacion_form" model="ir.ui.view">
+        <field name="model">account.move</field>
+        <field name="name">view_hacienda_move_anulacion_form</field>
+         <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+                <xpath expr="//page[@name='other_info']" position="after">
+                   <page string="Invalidacion" name="hacienda_inv" invisible="move_type not in ['out_invoice', 'out_refund']">
+
+                        <group id="other_tab_entry_group">
+                            <group name="misc_group">
+                                <field name="sit_fec_hor_Anula"   options="{'no_open': True, 'no_create': True}"/>
+                                <field name="sit_codigoGeneracion_invalidacion"   options="{'no_open': True, 'no_create': True}"/>
+                                <field name="sit_factura_a_reemplazar"   options="{'no_open': True, 'no_create': True}"/>
+                                <field name="sit_codigoGeneracionR"   options="{'no_open': True, 'no_create': True}"/>
+                                <field name="sit_tipoAnulacion"   options="{'no_open': True, 'no_create': True}"/>
+                                <field name="sit_motivoAnulacion"   options="{'no_open': True, 'no_create': True}"/>
+                                <field name='hacienda_estado_anulacion'/>
+                                <field name='hacienda_codigoGeneracion_anulacion'/>
+                                <field name='hacienda_selloRecibido_anulacion'/>
+                                <field name='hacienda_fhProcesamiento_anulacion'/>
+                                <field name='hacienda_codigoMsg_anulacion'/>
+                                <field name='hacienda_descripcionMsg_anulacion'/>
+                                <field name='hacienda_observaciones_anulacion'/>
+                                <field name='sit_qr_hacienda_anulacion'/>
+                                <!-- <field name='sit_documento_firmado_invalidacion' /> -->
+                            </group>
+                        </group>
+                    </page>
+                </xpath>
+        </field>
+    </record>
+</odoo>

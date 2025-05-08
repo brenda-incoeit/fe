@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="sit_product_template_hacienda" model="ir.ui.view">
+            <field name="name">sit_product_template_hacienda</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="product.product_template_only_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='barcode']" position="after">
+                <!-- <field name="l10n_latam_document_type_id" position="before"> -->
+                    <field name="uom_hacienda"   options="{'no_open': True, 'no_create': True}"/>
+                    <field name="tipoItem"   options="{'no_open': True, 'no_create': True}"/>
+                    <field name="tributos_hacienda_cuerpo"   />
+                    <field name="sit_psv"   />
+                <!-- </field> -->
+                </xpath>
+            </field>
+        </record>
+
+        <record id="sit_product_product_hacienda" model="ir.ui.view">
+            <field name="name">sit_product_product_hacienda</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="product.product_normal_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='barcode']" position="after">
+                <!-- <field name="l10n_latam_document_type_id" position="before"> -->
+                    <field name="uom_hacienda"   options="{'no_open': True, 'no_create': True}"/>
+                    <field name="tipoItem"   options="{'no_open': True, 'no_create': True}"/>
+                    <field name="tributos_hacienda_cuerpo"   />
+                    <field name="sit_psv"   />
+                <!-- </field> -->
+                </xpath>
+            </field>
+        </record>
+
+
+
+    </data>
+</odoo>
+
+

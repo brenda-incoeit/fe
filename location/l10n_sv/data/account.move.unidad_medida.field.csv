@@ -1,0 +1,57 @@
+id,codigo,valores
+Cat_014_01,01,Metro 
+Cat_014_02,02,Yarda 
+Cat_014_03,03,Vara 
+Cat_014_04,04,Pie 
+Cat_014_05,05,Pulgada 
+Cat_014_06,06,Milímetro 
+Cat_014_08,08,Milla cuadrada 
+Cat_014_09,09,Kilómetro cuadrado 
+Cat_014_10,10,Hectárea 
+Cat_014_11,11,Manzana 
+Cat_014_12,12,Acre 
+Cat_014_13,13,Metro cuadrado 
+Cat_014_14,14,Yarda cuadrada 
+Cat_014_15,15,Vara cuadrada 
+Cat_014_16,16,Pie cuadrado 
+Cat_014_17,17,Pulgada cuadrada 
+Cat_014_18,18,Metro cúbico 
+Cat_014_19,19,Yarda cúbica 
+Cat_014_20,20,Barril 
+Cat_014_21,21,Pie cúbico 
+Cat_014_22,22,Galón 
+Cat_014_23,23,Litro 
+Cat_014_24,24,Botella 
+Cat_014_25,25,Pulgada cúbica 
+Cat_014_26,26,Mililitro 
+Cat_014_27,27,Onza fluida 
+Cat_014_29,29,Tonelada métrica 
+Cat_014_30,30,Tonelada 
+Cat_014_31,31,Quintal métrico 
+Cat_014_32,32,Quintal 
+Cat_014_33,33,Arroba 
+Cat_014_34,34,Kilogramo 
+Cat_014_35,35,Libra troy 
+Cat_014_36,36,Libra 
+Cat_014_37,37,Onza troy 
+Cat_014_38,38,Onza 
+Cat_014_39,39,Gramo 
+Cat_014_40,40,Miligramo 
+Cat_014_42,42,Megawatt 
+Cat_014_43,43,Kilowatt 
+Cat_014_44,44,Watt 
+Cat_014_45,45,Megavoltio-amperio 
+Cat_014_46,46,Kilovoltio-amperio 
+Cat_014_47,47,Voltio-amperio 
+Cat_014_49,49,Gigawatt-hora 
+Cat_014_50,50,Megawatt-hora 
+Cat_014_51,51,Kilowatt-hora 
+Cat_014_52,52,Watt-hora 
+Cat_014_53,53,Kilovoltio 
+Cat_014_54,54,Voltio 
+Cat_014_55,55,Millar 
+Cat_014_56,56,Medio millar 
+Cat_014_57,57,Ciento 
+Cat_014_58,58,Docena 
+Cat_014_59,59,Unidad 
+Cat_014_99,99,Otra 

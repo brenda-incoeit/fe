@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_account_journal_code_form" model="ir.ui.view">
+        <field name="model">account.journal</field>
+        <field name="name">view_account_journal_code_form</field>
+        <field name="inherit_id" ref="account.view_account_journal_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='type']" position="before">
+                        <field name="sit_tipo_documento" placeholder="Tipo de DTE - CAT02"/>
+                        <field name="sit_tipo_establecimiento" placeholder="Tipo de Establecimiento - CAT09"/>
+                        <field name="sit_tipo_operacion" placeholder="Tipo de Operación - CAT04"/>
+                        <field name="sit_codestable" placeholder="Codigo Establecimiento" />
+                        <field name="sit_codpuntoventa" />
+            </xpath> 
+                <!-- 
+                <field name="code" position="after">
+                            <field name="code_cat02" placeholder="Código de tipo de DTE - CAT02"/>
+                </field>
+                -->
+        </field>
+    </record>
+</odoo>
+
+
+
+

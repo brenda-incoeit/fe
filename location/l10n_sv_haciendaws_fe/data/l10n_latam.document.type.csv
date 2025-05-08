@@ -1,0 +1,12 @@
+id,code,name,report_name,internal_type,doc_code_prefix,country_id/id
+dc_sv_fe,01,Factura,Factura,invoice,01,base.sv
+dc_sv_ccfe,03,Comprobante de crédito fiscal,Comprobante de crédito fiscal,invoice,03,base.sv
+dc_sv_nre,04,Nota de remisión,Nota de remisién,invoice,04,base.sv
+dc_sv_nce,05,Nota de crédito,Nota de crédito,credit_note,05,base.sv
+dc_sv_nde,06,Nota de débito,Nota de débito,debit_note,06,base.sv
+dc_sv_cre,07,Comprobante de retención,Comprobante de retencién,invoice,07,base.sv
+dc_sv_cle,08,Comprobante de liquidacién,Comprobante de liquidacién,invoice,08,base.sv
+dc_sv_dcle,09,Documento contable de liquidación,Documento contable de liquidación,invoice,09,base.sv
+dc_sv_fexe,11,Facturas de exportación,Facturas de exportación,invoice,11,base.sv
+dc_sv_fsee,14,Factura de sujeto excluido,Factura de sujeto excluido,invoice,14,base.sv
+dc_sv_cde,15,Comprobante de donación,Comprobante de donación,,15,base.sv
