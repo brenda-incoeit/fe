@@ -10,9 +10,9 @@
                 <attribute name="invisible">['|', ('state', '!=', 'draft'), ('validation_type', '!=', False)]</attribute>
             </button>
             <button name="action_post" position="replace">
-                <!-- <button name="action_post" type="object" string="Validar en PROD HACIENDA" class="oe_highlight" groups="account.group_account_invoice"/>
-                <button name="action_post" type="object" string="Validar en TEST" class="oe_highlight" groups="account.group_account_invoice"/> -->
-                <!-- <button name="generar_qr" string="Generar QR" type="object" class="oe_highlight" /> -->
+               <button name="action_post" type="object" string="Validar en PROD HACIENDA" class="oe_highlight" groups="account.group_account_invoice"/>
+                <button name="action_post" type="object" string="Validar en TEST" class="oe_highlight" groups="account.group_account_invoice"/>
+                <button name="generar_qr" string="Generar QR" type="object" class="oe_highlight" />
             </button>
             <!-- <field name="l10n_ar_afip_concept" position="after"> -->
             <group name="sale_info_group" position="after">
