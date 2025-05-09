@@ -371,12 +371,12 @@ class AccountMove(models.Model):
             else:
                 environment_type = "production"
             return environment_type
-            
+
     # FIMAR FIMAR FIRMAR =======
     def firmar_documento(self, enviroment_type, payload):
         _logger.info("SIT  Firmando de documento")
         _logger.info("SIT Documento a FIRMAR =%s", payload)
-        if enviroment_type == 'homologation': 
+        if enviroment_type == 'homologation':
             ambiente = "01"
         else:
             ambiente = "01"
@@ -397,20 +397,20 @@ class AccountMove(models.Model):
             _logger.info("SIT dte json =%s", payload["dteJson"])
         except Exception as e:
             error = str(e)
-            _logger.info('SIT error= %s, ', error)       
+            _logger.info('SIT error= %s, ', error)
             if "error" in error or "" in error:
-                MENSAJE_ERROR = str(error['status']) + ", " + str(error['error']) +", " +  str(error['message'])  
+                MENSAJE_ERROR = str(error['status']) + ", " + str(error['error']) +", " +  str(error['message'])
                 raise UserError(_(MENSAJE_ERROR))
             else:
                 raise UserError(_(error))
-        resultado = []    
+        resultado = []
         json_response = response.json()
         if json_response['status'] in [  400, 401, 402 ] :
             _logger.info("SIT Error 40X  =%s", json_response['status'])
             status=json_response['status']
             error=json_response['error']
             message=json_response['message']
-            MENSAJE_ERROR = "Código de Error:" + str(status) + ", Error:" + str(error) +", Detalle:" +  str(message)  
+            MENSAJE_ERROR = "Código de Error:" + str(status) + ", Error:" + str(error) +", Detalle:" +  str(message)
             raise UserError(_(MENSAJE_ERROR))
         if json_response['status'] in [ 'ERROR', 401, 402 ] :
             _logger.info("SIT Error 40X  =%s", json_response['status'])
@@ -421,8 +421,8 @@ class AccountMove(models.Model):
             resultado.append(status)
             resultado.append(codigo)
             resultado.append(message)
-            MENSAJE_ERROR = "Código de Error:" + str(status) + ", Codigo:" + str(codigo) +", Detalle:" +  str(message)  
-            raise UserError(_(MENSAJE_ERROR))        
+            MENSAJE_ERROR = "Código de Error:" + str(status) + ", Codigo:" + str(codigo) +", Detalle:" +  str(message)
+            raise UserError(_(MENSAJE_ERROR))
         elif json_response['status'] == 'OK':
             status=json_response['status']
             body=json_response['body']
@@ -434,7 +434,7 @@ class AccountMove(models.Model):
         _logger.info("SIT  Obteniendo payload")
         
         if enviroment_type == 'homologation': 
-            ambiente = "01"
+            ambiente = "00"
         else:
             ambiente = "01"
         if sit_tipo_documento == "01":
@@ -460,86 +460,105 @@ class AccountMove(models.Model):
         _logger.info("SIT payload_data =%s", invoice_info)
         return invoice_info
 
-   
-    def generar_dte(self, enviroment_type, payload, payload_original):
-        _logger.info("SIT  Generando DTE MH")
-        if enviroment_type == 'homologation': 
-            host = 'https://apitest.dtes.mh.gob.sv' 
-        else:
-            host = 'https://api.dtes.mh.gob.sv'
-        url = host + '/fesv/recepciondte'
+# FRANCISCO # SE OBTIENE EL JWT Y SE ENVIA A HACIENDA PARA SU VALIDACION
+    def generar_dte(self, environment_type, payload, payload_original):
+        """
+        1) Refresca el token si caducó.
+        2) Si no hay JWT en payload['documento'], llama al firmador.
+        3) Envía el JWT firmado a Hacienda.
+        """
+        # ——— 1) Selección de URL de Hacienda ———
+        host = 'https://apitest.dtes.mh.gob.sv' if environment_type == 'homologation' else 'https://api.dtes.mh.gob.sv'
+        url_receive = f"{host}/fesv/recepciondte"
 
-        if not self.company_id.sit_token_fecha:
+        # ——— 2) Refrescar token si hace falta ———
+        today = fields.Date.context_today(self)
+        if not self.company_id.sit_token_fecha or self.company_id.sit_token_fecha.date() < today:
             self.company_id.get_generar_token()
-        elif self.company_id.sit_token_fecha.date() and  self.company_id.sit_token_fecha.date() < self.date:
-            self.company_id.get_generar_token()
-        agente = self.company_id.sit_token_user
-        authorization = self.company_id.sit_token
-        _logger.info("SIT = company= %s, agente=, %s, autorizacion=%s )", self.company_id, agente, authorization)
 
         headers = {
-         'Content-Type': 'application/json',
-         'User-Agent': 'DjangoApp', #agente,
-         'Authorization': authorization
+            'Content-Type': 'application/json',
+            'User-Agent': 'Odoo',
+            'Authorization': f"Bearer {self.company_id.sit_token}",
         }
-        if 'version' not in payload:
-            # Si no existe, añadirlo con el valor 3
-            payload['version'] = 3
-        _logger.info("SIT = requests.request(POST, %s, headers=%s, data=%s)", url, headers, payload)
-        try:
-            _logger.info("________________________________________________ =%s", payload)
-            #response = requests.request("POST", url, headers=headers, data=json.dumps(payload))
-            response = requests.request("POST", url, headers=headers, data=payload)
-            _logger.info("SIT DTE response =%s", response)
-            _logger.info("SIT DTE response status =%s", response.status_code)
-            _logger.info("SIT DTE response.text =%s", response.text)
-        except Exception as e:
-            error = str(e)
-            _logger.info('SIT error= %s, ', error)       
-            if "error" in error or "" in error:
-                MENSAJE_ERROR = str(error['status']) + ", " + str(error['error']) +", " +  str(error['message'])  
-                raise UserError(_(MENSAJE_ERROR))
-            else:
-                raise UserError(_(error))
-        resultado = []    
-        _logger.info("SIT DTE decodificando respuestas")
-        if response.status_code in [  401 ] :
-            MENSAJE_ERROR = "ERROR de conexión : " + str(response )   
-            raise UserError(_(MENSAJE_ERROR))
-        json_response = response.json()
-        _logger.info("SIT json_responset =%s", json_response)
-        if json_response['estado'] in [  "RECHAZADO", 402 ] :
-            status=json_response['estado']
-            ambiente=json_response['ambiente']
-            if json_response['ambiente'] == '01':
-                ambiente = 'PROD'
-            else:
-                ambiente = 'PROD'
-            clasificaMsg=json_response['clasificaMsg']
-            message=json_response['descripcionMsg']
-            observaciones=json_response['observaciones']
-            MENSAJE_ERROR = "Código de Error..:" + str(status) + ", Ambiente:" + ambiente + ", ClasificaciónMsje:" + str(clasificaMsg) +", Descripcion:" + str(message) +", Detalle:" +  str(observaciones) +", DATA:  " +  str(json.dumps(payload_original))
-            self.hacienda_estado= status
-            if not self.hacienda_codigoGeneracion_identificacion:
-                self.write({'hacienda_codigoGeneracion_identificacion' : payload['codigoGeneracion']})
-            self.state = "posted"
-            self.journal_id.sequence_number_next += 1
-            self.env.cr.commit()
-            raise UserError(_(MENSAJE_ERROR))
-        status = json_response.get('status')
-        if status and status in [400, 401, 402]:
-            _logger.info("SIT Error 40X  =%s", status)
-            error = json_response.get('error', 'Error desconocido')  # Si 'error' no existe, devuelve 'Error desconocido'
-            message = json_response.get('message', 'Mensaje no proporcionado')  # Si 'message' no existe, devuelve 'Mensaje no proporcionado'
-            MENSAJE_ERROR = "Código de Error:" + str(status) + ", Error:" + str(error) + ", Detalle:" + str(message)
-            raise UserError(_(MENSAJE_ERROR))
-        if json_response['estado'] in [  "PROCESADO" ] :
-            return json_response
 
-    def _autenticar(self,
-            user,
-            pwd,
-            ):
+        # ——— 3) Obtener o firmar el JWT ———
+        jwt_token = payload.get('documento')
+        if isinstance(jwt_token, str) and jwt_token.strip():
+            _logger.info("SIT saltando firma: JWT ya existe")
+            _logger.info("SI ME ENCUENTRO EN EL LA CARPETA DE GIT")
+        else:
+            # Determinar URL del firmador
+            firmador_url = getattr(self.company_id, 'sit_firmador', None) \
+                           or 'http://192.168.2.25:8113/firmardocumento'
+
+            sign_payload = {
+                "nit": payload_original['dteJson']['emisor']['nit'],
+                "activo": True,
+                "passwordPri": payload_original.get('passwordPri')
+                               or self.company_id.sit_password
+                               or payload_original['dteJson'].get('passwordPri'),
+                "dteJson": payload_original['dteJson'],
+            }
+            _logger.info("SIT firmando DTE: %s", sign_payload)
+
+            try:
+                resp_sign = requests.post(
+                    firmador_url,
+                    headers={'Content-Type': 'application/json'},
+                    json=sign_payload,
+                    timeout=30
+                )
+                resp_sign.raise_for_status()
+                data_sign = resp_sign.json()
+            except Exception as e:
+                raise UserError(_("Error al firmar DTE: %s") % e)
+
+            if data_sign.get('status') != 'OK':
+                raise UserError(_("Firma rechazada: %s – %s") %
+                                (data_sign.get('status'), data_sign.get('message', 'sin detalle')))
+
+            jwt_token = data_sign['body']
+            _logger.info("SIT JWT recibido: %s...", jwt_token[:30])
+
+        # ——— 4) Construir el payload para Hacienda ———
+        ident = payload_original['dteJson']['identificacion']
+        send_payload = {
+            "ambiente": ident['ambiente'],
+            "idEnvio": str(self.id),
+            "tipoDte": ident['tipoDte'],
+            "version": ident.get('version', 3),
+            "documento": jwt_token,
+            "codigoGeneracion": ident['codigoGeneracion'],
+        }
+        _logger.info("SIT enviando a MH: %s", send_payload)
+
+        # ——— 5) Envío a Hacienda ———
+        try:
+            resp = requests.post(url_receive, headers=headers, json=send_payload, timeout=30)
+        except Exception as e:
+            raise UserError(_("Error de conexión con Hacienda: %s") % e)
+
+        _logger.info("SIT MH status=%s text=%s", resp.status_code, resp.text)
+        if resp.status_code != 200:
+            try:
+                detail = resp.json()
+            except ValueError:
+                detail = resp.text or 'sin detalle'
+            raise UserError(_("Error MH (HTTP %s): %s") % (resp.status_code, detail))
+
+        data = resp.json()
+        estado = data.get('estado')
+        if estado == 'RECHAZADO':
+            raise UserError(_("Rechazado por MH: %s – %s") %
+                            (data.get('clasificaMsg'), data.get('descripcionMsg')))
+        if estado == 'PROCESADO':
+            return data
+
+        # ——— Caso inesperado ———
+        raise UserError(_("Respuesta inesperada de MH: %s") % data)
+
+    def _autenticar(self,user,pwd):
         _logger.info("SIT self = %s", self)
         _logger.info("SIT self = %s, %s", user, pwd)
         enviroment_type = self._get_environment_type()
@@ -569,7 +588,6 @@ class AccountMove(models.Model):
         resultado = []    
         json_response = response.json()
 
-
     def _generar_qr(self, ambiente, codGen, fechaEmi):
         _logger.info("SIT generando qr = %s", self)
         # enviroment_type = self._get_environment_type()
@@ -589,7 +607,7 @@ class AccountMove(models.Model):
             border=4,  # Ancho del borde del código QR
         )
         codigo_qr.add_data(texto_codigo_qr)
-        os.chdir('/mnt/extra-addons/src')
+        os.chdir('C:/Users/INCOE/PycharmProjects/odoo18/fe/location/mnt/src')
         directory = os.getcwd()
         _logger.info("SIT directory =%s", directory)
         basewidth = 100
@@ -603,7 +621,6 @@ class AccountMove(models.Model):
         qrCode = base64.b64encode(buffer.getvalue())
         # self.sit_qr_hacienda = qrCode
         return qrCode
-        
         
     def generar_qr(self):
         _logger.info("SIT generando qr = %s", self)
@@ -622,7 +639,7 @@ class AccountMove(models.Model):
             border=1,  # Ancho del borde del código QR
         )
         codigo_qr.add_data(texto_codigo_qr)
-        os.chdir('/mnt/extra-addons/src')
+        os.chdir('C:/Users/INCOE/PycharmProjects/odoo18/fe/location/mnt/src')
         directory = os.getcwd()
 
         _logger.info("SIT directory =%s", directory)
@@ -638,9 +655,7 @@ class AccountMove(models.Model):
         new_img.save(buffer, format="PNG")
         qrCode = base64.b64encode(buffer.getvalue())
         self.sit_qr_hacienda = qrCode
-        return 
-        
-
+        return
 
     def check_parametros_firmado(self):
         if not self.journal_id.sit_tipo_documento.codigo:
