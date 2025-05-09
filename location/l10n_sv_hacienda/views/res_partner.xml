@@ -31,14 +31,16 @@
 		</field>
 	</record>
 	<record id="sit_view_partner_form" model="ir.ui.view">
-		<field name="name">sit_view_partner_form</field>
-		<field name="model">res.partner</field>
-		<field eval="90" name="priority" />
-		<field name="inherit_id" ref="l10n_sv.view_partner_l10n_sv_base" />
-		<field name="arch" type="xml">
-			<xpath expr="//field[@name='vat']" position="after">
-				<field name="codActividad" />
-			</xpath>
-		</field>
-	</record>
+        <field name="name">sit_view_partner_form</field>
+        <field name="model">res.partner</field>
+        <field eval="90" name="priority" />
+        <field name="inherit_id" ref="l10n_sv.view_partner_l10n_sv_base" />
+        <field name="arch" type="xml">
+            <!-- Agregar el campo codActividad después del campo VAT -->
+            <xpath expr="//field[@name='vat']" position="after">
+                <!-- Campo para código de actividad con etiqueta -->
+                <field name="codActividad" string="Código de Actividad" placeholder="Seleccionar código de actividad"/>
+            </xpath>
+        </field>
+    </record>
 </odoo>

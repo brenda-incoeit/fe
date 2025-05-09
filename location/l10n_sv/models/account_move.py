@@ -5,7 +5,7 @@ from odoo import fields, models, api
 class sit_account_move(models.Model):
     
     _inherit = 'account.move'
-    forma_pago = fields.Many2one('account.move.forma_pago.field')
+    forma_pago = fields.Many2one('account.move.forma_pago.field', store=True)
     invoice_payment_term_name = fields.Char(related='invoice_payment_term_id.name')
     condiciones_pago = fields.Selection(
         selection='_get_condiciones_pago_selection', string='Condición de la Operación (Pago) - Hacienda')
@@ -15,10 +15,8 @@ class sit_account_move(models.Model):
     sit_tipo_contingencia = fields.Many2one('account.move.tipo_contingencia.field', string="Tipo de Contingencia")
     sit_tipo_contingencia_otro = fields.Text(string="Especifique el Otro Tipo de Contingencia")
     sit_tipo_contingencia_valores = fields.Char(related="sit_tipo_contingencia.valores", string="Tipo de contingiancia(nombre)")
-    sit_modelo_facturacion = fields.Selection(
-        selection='_get_modelo_facturacion_selection', string='Modelo de Facturacion - Hacienda')
-    sit_tipo_transmision = fields.Selection(
-        selection='_get_tipo_transmision_selection', string='Tipo de Transmisión - Hacienda')
+    sit_modelo_facturacion = fields.Selection(selection='_get_modelo_facturacion_selection', string='Modelo de Facturacion - Hacienda', store=True)
+    sit_tipo_transmision = fields.Selection(selection='_get_tipo_transmision_selection', string='Tipo de Transmisión - Hacienda', store=True)
     sit_referencia = fields.Text(string="Referencia", default="")
     sit_qr_hacienda = fields.Binary("QR Hacienda", default=False) 
     sit_json_respuesta = fields.Text("Json de Respuesta", default="") 
