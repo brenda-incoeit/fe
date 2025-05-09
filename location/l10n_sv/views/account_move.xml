@@ -11,7 +11,7 @@
                 </xpath>
                 <xpath expr="//label[@for='journal_id']" position="before">
                     <field name="invoice_payment_term_name"  invisible="1" />
-                    <field name="condiciones_pago" options="{'no_open': True, 'no_create': True}"/>
+                    <field name="condiciones_pago" string="Condiciones de Pago" options="{'no_open': True, 'no_create': True}"/>
                     <field name="forma_pago" options="{'no_open': True, 'no_create': True}"/>
                     <field name="sit_periodo" options="{'no_open': True, 'no_create': True}"/>
                     <field name="sit_plazo" options="{'no_open': True, 'no_create': True}"/>

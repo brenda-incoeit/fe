@@ -8,7 +8,7 @@
             <xpath expr="//field[@name='type']" position="before">
                         <field name="sit_tipo_documento" placeholder="Tipo de DTE - CAT02"/>
                         <field name="sit_tipo_establecimiento" placeholder="Tipo de Establecimiento - CAT09"/>
-                        <field name="sit_tipo_operacion" placeholder="Tipo de Operación - CAT04"/>
+                        <field name="sit_tipo_transmision" placeholder="Tipo de Operación - CAT04"/>
                         <field name="sit_codestable" placeholder="Codigo Establecimiento" />
                         <field name="sit_codpuntoventa" />
             </xpath> 

@@ -477,7 +477,8 @@ class AccountMove(models.Model):
         direccion_rec = {}
         invoice_info = {}
          # Número de Documento (Nit)
-        nit = self.partner_id.vat.replace("-", "") if self.partner_id.vat and isinstance(self.partner_id.vat, str) else None
+        #nit = self.partner_id.vat.replace("-", "") if self.partner_id.vat and isinstance(self.partner_id.vat, str) else None
+        nit = self.partner_id.dui.replace("-", "") if self.partner_id.dui and isinstance(self.partner_id.dui, str) else None
         invoice_info["numDocumento"] = nit
         # Establece 'tipoDocumento' como None si 'nit' es None
         tipoDocumento = self.partner_id.l10n_latam_identification_type_id.codigo if self.partner_id.l10n_latam_identification_type_id and nit else None

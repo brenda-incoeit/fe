@@ -14,6 +14,7 @@ class Company(models.Model):
     pbx = fields.Char(string="PBX")
     sit_uuid = fields.Char(string="UUID")
     nrc = fields.Char(related="partner_id.nrc")
+    nombre_comercial = fields.Char(string="Nombre Comercial")
         
     @api.onchange('company_registry')
     def change_company_registry(self):
