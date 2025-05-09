@@ -43,64 +43,87 @@ class AccountMove(models.Model):
         invoice_info["resumen"] = self.sit_ccf_base_map_invoice_info_resumen(cuerpoDocumento[2], cuerpoDocumento[3], cuerpoDocumento[4],  invoice_info["identificacion"]  )
         invoice_info["extension"] = self.sit_ccf_base_map_invoice_info_extension()
         invoice_info["apendice"] = None
-        return invoice_info        
+        return invoice_info
 
     def sit__ccf_base_map_invoice_info_identificacion(self):
         invoice_info = {}
         invoice_info["version"] = 3
-        validation_type = self._compute_validation_type_2()        
+
+        _logger.info("SIT Identificacion CCF — nombre control: %s", self.name)
+
+        # ——————————————————————
+        # Ambiente y validación
+        validation_type = self._compute_validation_type_2()
         param_type = self.env["ir.config_parameter"].sudo().get_param("afip.ws.env.type")
         if param_type:
             validation_type = param_type
-        if validation_type == 'homologation': 
-            ambiente = "00"
-        else:
-            ambiente = "01"        
+        ambiente = "00" if validation_type == "homologation" else "01"
         invoice_info["ambiente"] = ambiente
         invoice_info["tipoDte"] = self.journal_id.sit_tipo_documento.codigo
-        if self.name == "/":
-            tipo_dte = self.journal_id.sit_tipo_documento.codigo or '01'
 
-            # Obtener el código de establecimiento desde el diario
-            cod_estable = self.journal_id.cod_sit_estable or '0000MOO1'
+        # ——————————————————————
+        # Siempre usamos el name que ya tiene el DTE
+        numero = (self.name or "").strip()
+        if not numero.startswith("DTE-"):
+            raise UserError(_("Número de control inválido: %s") % numero)
 
-            # Obtener la secuencia desde ir.sequence con padding 15
-            correlativo = self.env['ir.sequence'].next_by_code('dte.secuencia') or '0'
-            correlativo = correlativo.zfill(15)
+        invoice_info["numeroControl"] = numero
 
-            # Construir el número de control completo
-            invoice_info["numeroControl"] = f"DTE-{tipo_dte}-0000{cod_estable}-{correlativo}"
+        # ——————————————————————
+        # Extraemos tipoDte, codEstable y correlativo
+        tipo_dte = cod_estable = correlativo = None
+        if numero.startswith("DTE-"):
+            parts = numero.split("-", 3)
+            if len(parts) == 4:
+                tipo_dte, cod_estable, correlativo = parts[1], parts[2], parts[3]
+            else:
+                _logger.warning("SIT Formato inesperado en numeroControl: %s", numero)
         else:
-            invoice_info["numeroControl"] = self.name
-        invoice_info["codigoGeneracion"] = self.sit_generar_uuid()
-        invoice_info["tipoModelo"] = int(self.sit_modelo_facturacion)
-        invoice_info["tipoOperacion"] = int(self.sit_tipo_transmision)
-        tipoContingencia = int(self.sit_tipo_contingencia)
-        invoice_info["tipoContingencia"] = tipoContingencia
-        motivoContin = str(self.sit_tipo_contingencia_otro)
-        invoice_info["motivoContin"] = motivoContin
+            _logger.warning("SIT numeroControl no comienza con 'DTE-': %s", numero)
 
-        import datetime
-        import pytz
-        import os
-        os.environ['TZ'] = 'America/El_Salvador'  # Establecer la zona horaria
-        datetime.datetime.now() 
-        salvador_timezone = pytz.timezone('America/El_Salvador')
-        FechaEmi = datetime.datetime.now(salvador_timezone)
-        invoice_info["fecEmi"] = FechaEmi.strftime('%Y-%m-%d')
-        invoice_info["horEmi"] = FechaEmi.strftime('%H:%M:%S')
-        invoice_info["tipoMoneda"] =  self.currency_id.name
+        # ——————————————————————
+        # UUID, modelo y operación (del diario)
+        invoice_info["codigoGeneracion"] = self.sit_generar_uuid()
+        invoice_info["tipoModelo"]       = int(self.journal_id.sit_modelo_facturacion)
+        invoice_info["tipoOperacion"]    = int(self.journal_id.sit_tipo_transmision)
+
+        # ——————————————————————
+        # Contingencia y motivo
+        invoice_info["tipoContingencia"] = int(self.sit_tipo_contingencia or 0)
+        invoice_info["motivoContin"]     = str(self.sit_tipo_contingencia_otro or "")
+
+        # ——————————————————————
+        # Fecha y hora de emisión
+        import datetime, pytz, os
+        os.environ["TZ"] = "America/El_Salvador"  # Establecer la zona horaria
+        now = datetime.datetime.now(pytz.timezone("America/El_Salvador"))
+        invoice_info["fecEmi"] = now.strftime("%Y-%m-%d")
+        invoice_info["horEmi"] = now.strftime("%H:%M:%S")
+
+        invoice_info["tipoMoneda"] = self.currency_id.name
+
+        # ——————————————————————
+        # Ajustes finales según tipoOperacion
         if invoice_info["tipoOperacion"] == 1:
-            invoice_info["tipoModelo"] = 1
+            invoice_info["tipoModelo"]       = 1
             invoice_info["tipoContingencia"] = None
-            invoice_info["motivoContin"] = None
+            invoice_info["motivoContin"]     = None
         else:
             invoice_info["tipoModelo"] = 2
-        if invoice_info["tipoOperacion"] == 2:
-            invoice_info["tipoContingencia"] = tipoContingencia
-        if invoice_info["tipoContingencia"] == 5:
-            invoice_info["motivoContin"] = motivoContin
-        return invoice_info        
+            if invoice_info["tipoContingencia"] != 5:
+                invoice_info["motivoContin"] = None
+
+        # ——————————————————————
+        # Log final de todo el payload de identificación
+        try:
+            _logger.info(
+                "SIT CCF Identificación — payload final:\n%s",
+                json.dumps(invoice_info, indent=2, ensure_ascii=False),
+            )
+        except Exception as e:
+            _logger.error("SIT Error al serializar payload final: %s", e)
+
+        return invoice_info
 
     def sit__ccf_base_map_invoice_info_documentoRelacionado(self):
         invoice_info = {}
@@ -143,7 +166,8 @@ class AccountMove(models.Model):
         _logger.info("SIT sit_base_map_invoice_info_receptor self = %s", self)
         direccion_rec = {}
         invoice_info = {}
-        nit = self.partner_id.vat
+        nit = self.partner_id.fax
+        _logger.info("SIT Documento receptor = %s", self.partner_id.dui)
         if isinstance(nit, str):
             nit = nit.replace("-", "")
             invoice_info["nit"] = nit
@@ -325,7 +349,9 @@ class AccountMove(models.Model):
         else:
             pagos["plazo"] = None  
             pagos["periodo"] = None     
-            invoice_info["pagos"] = None
+            invoice_info["pagos"] = [pagos]
+            _logger.info("SIT Formas de pago = %s=, %s=", self.forma_pago, pagos)
+
         invoice_info["numPagoElectronico"] = None
         if invoice_info["totalGravada"] == 0.0:
             invoice_info["ivaPerci1"] = 0.0
@@ -342,7 +368,7 @@ class AccountMove(models.Model):
             invoice_info["nombRecibe"] = self.partner_id.nombreComercial
         else:
             invoice_info["nombRecibe"] = None
-        nit=self.partner_id.vat
+        nit=self.partner_id.dui
         if isinstance(nit, str):
             nit = nit.replace("-", "")
             invoice_info["docuRecibe"] = nit
@@ -657,10 +683,10 @@ class AccountMove(models.Model):
         invoice_info["docuEntrega"] = self.company_id.vat
         invoice_info["nombRecibe"] = self.partner_id.nombreComercial if self.partner_id.nombreComercial else None
         # Asegurarse de que 'nit' sea una cadena antes de usar 'replace'
-        nit = self.partner_id.vat if isinstance(self.partner_id.vat, str) else None
+        nit = self.partner_id.dui if isinstance(self.partner_id.dui, str) else None
         if nit:
             nit = nit.replace("-", "")
-        nit = self.partner_id.vat.replace("-", "") if self.partner_id.vat and isinstance(self.partner_id.vat, str) else None
+        nit = self.partner_id.dui.replace("-", "") if self.partner_id.dui and isinstance(self.partner_id.dui, str) else None
         invoice_info["docuRecibe"] = nit
         invoice_info["observaciones"] = None
         invoice_info["placaVehiculo"] = None
@@ -930,10 +956,10 @@ class AccountMove(models.Model):
         invoice_info["docuEntrega"] = self.company_id.vat
         invoice_info["nombRecibe"] = self.partner_id.nombreComercial if self.partner_id.nombreComercial else None
         # Asegurarse de que 'nit' sea una cadena antes de usar 'replace'
-        nit = self.partner_id.vat if isinstance(self.partner_id.vat, str) else None
+        nit = self.partner_id.dui if isinstance(self.partner_id.dui, str) else None
         if nit:
             nit = nit.replace("-", "")
-        nit = self.partner_id.vat.replace("-", "") if self.partner_id.vat and isinstance(self.partner_id.vat, str) else None
+        nit = self.partner_id.dui.replace("-", "") if self.partner_id.dui and isinstance(self.partner_id.dui, str) else None
         invoice_info["docuRecibe"] = nit
         invoice_info["observaciones"] = None
         invoice_info["observaciones"] = None

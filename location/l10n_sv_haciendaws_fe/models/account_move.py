@@ -138,6 +138,54 @@ class AccountMove(models.Model):
     asynchronous_post = fields.Boolean()
     fecha_facturacion_hacienda = fields.Datetime("Fecha de Facturación - Hacienda",  help="Asignación de Fecha manual para registrarse en Hacienda", )
 
+    #Obtener Número de control
+    @api.model_create_multi
+    def create(self, vals_list):
+        moves = super().create(vals_list)
+        for inv in moves:
+            _logger.info("Create hook — invoice %s: move_type=%s, initial name=%s",
+                         inv.id, inv.move_type, inv.name)
+
+            if inv.move_type != 'entry' and inv.name == '/':
+                journal = inv.journal_id
+                if not journal:
+                    raise UserError(_("Debe definir un diario."))
+
+                if not journal.sit_tipo_documento or not journal.sit_tipo_documento.codigo:
+                    raise UserError(_("Debe configurar el Tipo de DTE en el diario '%s'.") % journal.name)
+                if not journal.sit_codestable:
+                    raise UserError(_("Debe configurar el Código de Establecimiento en el diario '%s'.") % journal.name)
+
+                tipo_dte = journal.sit_tipo_documento.codigo or '03'
+                cod_estable = journal.sit_codestable or 'M001'
+
+                # Buscar el último número usado para este tipo de DTE y establecimiento
+                domain = [
+                    ('move_type', '=', inv.move_type),
+                    ('journal_id', '=', journal.id),
+                    ('name', 'like', f"DTE-{tipo_dte}-%{cod_estable}%")
+                ]
+                last_move = self.search(domain, order="id desc", limit=1)
+                last_number = 0
+
+                if last_move and last_move.name:
+                    # Extraer el número final del formato: DTE-03-0000M001-000000000001047
+                    parts = last_move.name.split('-')
+                    if parts and len(parts) == 4:
+                        try:
+                            last_number = int(parts[-1])
+                        except ValueError:
+                            pass
+
+                next_number = last_number + 1
+                number_str = str(next_number).zfill(12)
+
+                numero_control = f"DTE-{tipo_dte}-0000{cod_estable}-{number_str}"
+
+                _logger.info("Número control generado manualmente: %s", numero_control)
+
+                inv.name = numero_control
+        return moves
 
     def cron_asynchronous_post(self):
         queue_limit = self.env['ir.config_parameter'].sudo().get_param('l10n_sv_haciendaws_fe.queue_limit', 20)
@@ -394,7 +442,7 @@ class AccountMove(models.Model):
             }
             response = requests.request("POST", url, headers=headers, data=json.dumps(payload))
             _logger.info("SIT firmar_documento response =%s", response.text)
-            _logger.info("SIT dte json =%s", payload["dteJson"])
+            _logger.info("SIT dte json =%s", json.dumps(payload.get("dteJson", {}), indent=2, ensure_ascii=False))
         except Exception as e:
             error = str(e)
             _logger.info('SIT error= %s, ', error)
