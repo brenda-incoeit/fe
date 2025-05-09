@@ -23,4 +23,4 @@ class AccountJournal(models.Model):
     sit_codestable = fields.Char(string='codEstable' )
     sit_codpuntoventa = fields.Char(string='codPuntoVenta' )
     sit_modelo_facturacion = fields.Many2one('account.journal.tipo_modelo.field', 'Tipo de Modelo (CAT03)', help='Tipo de Modelo de acuerdo al CAT03')
-    sit_tipo_operacion = fields.Many2one('account.move.tipo_operacion.field', string="Tipo de Operación (CAT04)", help='Código del Tipo de Operación al CAT004')
+    sit_tipo_transmision = fields.Many2one('account.move.tipo_operacion.field', string="Tipo de Operación (CAT04)", help='Código del Tipo de Operación al CAT004')

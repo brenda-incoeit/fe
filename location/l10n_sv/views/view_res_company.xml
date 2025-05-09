@@ -10,6 +10,7 @@
                     <field name="nrc" />
                     <field name="giro" invisible="1" />
                     <field name="sit_uuid" />
+                    <field name="nombre_comercial" />
                 </field>     
             <!-- <xpath expr="//sheet" position="before">
                 <header>
