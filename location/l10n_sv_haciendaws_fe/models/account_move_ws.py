@@ -2,12 +2,16 @@
 # For copyright and license notices, see __manifest__.py file in module root
 # directory
 ##############################################################################
+from typing import Any
+
 from odoo import fields, models, api, _
 from odoo.exceptions import UserError
 from datetime import datetime
 import base64
 import pyqrcode
 import logging
+
+import re
 
 _logger = logging.getLogger(__name__)
 
@@ -49,6 +53,40 @@ class AccountMove(models.Model):
         invoice_info = {}
         invoice_info["version"] = 3
 
+        # ——————————————————————
+        # Generar número de control si aún no existe o es inválido
+        numero_actual = (self.name or "").strip()
+        valid_dte_regex = re.compile(r"^DTE-\d{2}-0000\w{4}-\d{15}$")
+
+        if not valid_dte_regex.match(numero_actual):
+            _logger.warning("SIT Número de control inválido o ausente. Intentando generar uno nuevo.")
+
+            tipo_dte = self.journal_id.sit_tipo_documento.codigo
+            cod_estable = self.journal_id.sit_codestable
+
+            if not tipo_dte or not cod_estable:
+                raise UserError(
+                    _("No se puede generar número de control: faltan tipo DTE o código de establecimiento."))
+
+            today = fields.Date.context_today(self)
+            sequence_code = f'dte.{tipo_dte}'
+            sequence = self.env['ir.sequence'].with_context({
+                'dte': tipo_dte,
+                'estable': cod_estable,
+                'ir_sequence_date': today,
+            }).search([('code', '=', sequence_code)], limit=1)
+
+            if not sequence:
+                raise UserError(_("No se encontró secuencia para el tipo DTE '%s'.") % tipo_dte)
+
+            new_number = sequence.next_by_id()
+            if not new_number:
+                raise UserError(_("No se pudo generar número de control con la secuencia '%s'.") % sequence_code)
+
+            self.name = new_number
+            numero_actual = new_number
+            _logger.info("SIT Número de control generado dinámicamente: %s", new_number)
+
         _logger.info("SIT Identificacion CCF — nombre control: %s", self.name)
 
         # ——————————————————————
@@ -60,42 +98,35 @@ class AccountMove(models.Model):
         ambiente = "00" if validation_type == "homologation" else "01"
         invoice_info["ambiente"] = ambiente
         invoice_info["tipoDte"] = self.journal_id.sit_tipo_documento.codigo
+        invoice_info["numeroControl"] = numero_actual
 
         # ——————————————————————
-        # Siempre usamos el name que ya tiene el DTE
-        numero = (self.name or "").strip()
-        if not numero.startswith("DTE-"):
-            raise UserError(_("Número de control inválido: %s") % numero)
-
-        invoice_info["numeroControl"] = numero
-
-        # ——————————————————————
-        # Extraemos tipoDte, codEstable y correlativo
+        # Extraer tipoDte, establecimiento, correlativo
         tipo_dte = cod_estable = correlativo = None
-        if numero.startswith("DTE-"):
-            parts = numero.split("-", 3)
+        if numero_actual.startswith("DTE-"):
+            parts = numero_actual.split("-", 3)
             if len(parts) == 4:
                 tipo_dte, cod_estable, correlativo = parts[1], parts[2], parts[3]
             else:
-                _logger.warning("SIT Formato inesperado en numeroControl: %s", numero)
+                _logger.warning("SIT Formato inesperado en numeroControl: %s", numero_actual)
         else:
-            _logger.warning("SIT numeroControl no comienza con 'DTE-': %s", numero)
+            _logger.warning("SIT numeroControl no comienza con 'DTE-': %s", numero_actual)
 
         # ——————————————————————
-        # UUID, modelo y operación (del diario)
+        # UUID, modelo, operación
         invoice_info["codigoGeneracion"] = self.sit_generar_uuid()
-        invoice_info["tipoModelo"]       = int(self.journal_id.sit_modelo_facturacion)
-        invoice_info["tipoOperacion"]    = int(self.journal_id.sit_tipo_transmision)
+        invoice_info["tipoModelo"] = int(self.journal_id.sit_modelo_facturacion)
+        invoice_info["tipoOperacion"] = int(self.journal_id.sit_tipo_transmision)
 
         # ——————————————————————
-        # Contingencia y motivo
+        # Contingencia
         invoice_info["tipoContingencia"] = int(self.sit_tipo_contingencia or 0)
-        invoice_info["motivoContin"]     = str(self.sit_tipo_contingencia_otro or "")
+        invoice_info["motivoContin"] = str(self.sit_tipo_contingencia_otro or "")
 
         # ——————————————————————
         # Fecha y hora de emisión
         import datetime, pytz, os
-        os.environ["TZ"] = "America/El_Salvador"  # Establecer la zona horaria
+        os.environ["TZ"] = "America/El_Salvador"
         now = datetime.datetime.now(pytz.timezone("America/El_Salvador"))
         invoice_info["fecEmi"] = now.strftime("%Y-%m-%d")
         invoice_info["horEmi"] = now.strftime("%H:%M:%S")
@@ -103,18 +134,18 @@ class AccountMove(models.Model):
         invoice_info["tipoMoneda"] = self.currency_id.name
 
         # ——————————————————————
-        # Ajustes finales según tipoOperacion
+        # Ajustes finales
         if invoice_info["tipoOperacion"] == 1:
-            invoice_info["tipoModelo"]       = 1
+            invoice_info["tipoModelo"] = 1
             invoice_info["tipoContingencia"] = None
-            invoice_info["motivoContin"]     = None
+            invoice_info["motivoContin"] = None
         else:
             invoice_info["tipoModelo"] = 2
             if invoice_info["tipoContingencia"] != 5:
                 invoice_info["motivoContin"] = None
 
         # ——————————————————————
-        # Log final de todo el payload de identificación
+        # Log final
         try:
             _logger.info(
                 "SIT CCF Identificación — payload final:\n%s",
@@ -124,6 +155,34 @@ class AccountMove(models.Model):
             _logger.error("SIT Error al serializar payload final: %s", e)
 
         return invoice_info
+
+    #Si el numero de control no es valido utilizar la siguiente funcion
+    def generar_numero_control_dte(self):
+        self.ensure_one()
+        journal = self.journal_id
+
+        tipo_dte = journal.sit_tipo_documento.codigo or '03'
+        cod_estable = journal.sit_codestable or 'M001'
+
+        domain = [
+            ('move_type', '=', self.move_type),
+            ('journal_id', '=', journal.id),
+            ('name', 'like', f"DTE-{tipo_dte}-%{cod_estable}%")
+        ]
+        last_move = self.search(domain, order="id desc", limit=1)
+        last_number = 0
+
+        if last_move and last_move.name:
+            parts = last_move.name.split('-')
+            if len(parts) == 4:
+                try:
+                    last_number = int(parts[-1])
+                except ValueError:
+                    pass
+
+        next_number = last_number + 1
+        number_str = str(next_number).zfill(15)
+        return f"DTE-{tipo_dte}-0000{cod_estable}-{number_str}"
 
     def sit__ccf_base_map_invoice_info_documentoRelacionado(self):
         invoice_info = {}
@@ -142,8 +201,8 @@ class AccountMove(models.Model):
         invoice_info["nombre"] = self.company_id.name
         invoice_info["codActividad"] = self.company_id.codActividad.codigo
         invoice_info["descActividad"] = self.company_id.codActividad.valores
-        if  self.company_id.nombreComercial:
-            invoice_info["nombreComercial"] = self.company_id.nombreComercial
+        if  self.company_id.nombre_comercial:
+            invoice_info["nombreComercial"] = self.company_id.nombre_comercial
         else:
             invoice_info["nombreComercial"] = None
         invoice_info["tipoEstablecimiento"] =  self.company_id.tipoEstablecimiento.codigo
@@ -156,10 +215,10 @@ class AccountMove(models.Model):
         else:
             invoice_info["telefono"] =  None
         invoice_info["correo"] =  self.company_id.email
-        invoice_info["codEstableMH"] =  self.journal_id.sit_codestable
-        invoice_info["codEstable"] =  self.journal_id.sit_codestable
+        invoice_info["codEstableMH"] =  "M001"#self.journal_id.sit_codestable
+        invoice_info["codEstable"] =  "0001"#self.journal_id.sit_codestable
         invoice_info["codPuntoVentaMH"] =  self.journal_id.sit_codpuntoventa
-        invoice_info["codPuntoVenta"] =  self.journal_id.sit_codpuntoventa
+        invoice_info["codPuntoVenta"] =  "0001"#self.journal_id.sit_codpuntoventa
         return invoice_info   
 
     def sit__ccf_base_map_invoice_info_receptor(self):
@@ -190,8 +249,8 @@ class AccountMove(models.Model):
             direccion_rec["municipio"] =  self.partner_id.munic_id.code
         else:
              direccion_rec["municicipio"] =  None 
-        if self.partner_id.street: 
-            direccion_rec["complemento"] =  self.partner_id.street
+        if self.partner_id.street2:
+            direccion_rec["complemento"] =  self.partner_id.street2
         else:
              direccion_rec["complemento"] =  None          
         invoice_info["direccion"] = direccion_rec
@@ -713,7 +772,7 @@ class AccountMove(models.Model):
         invoice_info["codigoGeneracion"] = self.sit_generar_uuid()
         return invoice_info      
      
-    def sit_generar_uuid(self):
+    def sit_generar_uuid(self) -> Any:
         import uuid
         # Genera un UUID versión 4 (basado en números aleatorios)
         uuid_aleatorio = uuid.uuid4()
