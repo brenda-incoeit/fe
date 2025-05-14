@@ -1,0 +1,16 @@
+<odoo>
+    <data>
+        <!-- Vista heredada para filtro en account.move -->
+        <record id="view_account_move_filter" model="ir.ui.view">
+            <field name="name">account.move.form</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="l10n_latam_invoice_document.view_account_invoice_filter"/>
+            <field name="arch" type="xml">
+                <!-- Usar la opción de 'invisible' directamente en el campo -->
+                <xpath expr="//field[@name='l10n_latam_document_type_id']" position="attributes">
+                    <attribute name="invisible">{'invisible': [('move_type', '=', 'out_refund')]}</attribute>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

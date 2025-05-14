@@ -6,7 +6,7 @@
         <field name="inherit_id" ref="l10n_sv.sit_account_move_data_id"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='condiciones_pago']" position="replace">
-                <field name="condiciones_pago"  options="{'no_open': True, 'no_create': True}" invisible="1"/>
+                <field name="condiciones_pago"  options="{'no_open': True, 'no_create': True}" invisible="0"/>
             </xpath>
             <xpath expr="//field[@name='sit_periodo']" position="replace">
                 <field name="sit_periodo" options="{'no_open': True, 'no_create': True}" invisible="1"/>

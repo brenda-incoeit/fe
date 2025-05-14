@@ -19,7 +19,7 @@
                 <group string="Factura Hacienda" name="sale_hacienda_info_group" >
                     <field name="afip_fce_es_anulacion"/>
                     <label for="afip_auth_code" string="HACIENDA associated period" options="{'invisible': [('move_type', 'not in', ['out_refund'])]}"/>
-                    <field name="afip_auth_code" invisible="1" class="oe_inline" options="{'required': [('afip_auth_mode', '!=', False)]}" placeholder="Code"/> - 
+                    <field name="afip_auth_code" invisible="1" class="oe_inline" options="{'required': [('afip_auth_mode', '!=', False)]}" placeholder="Code"/>
                     <field name='validation_type' invisible="1"/>
                     <field name="afip_auth_mode" invisible="1" class="oe_inline"/>
                     <div class="oe_inline" options="{'invisible': [('move_type', 'not in', ['out_refund'])]}">
@@ -30,11 +30,13 @@
             </group>
         </field>
     </record>
+
     <record id="view_hacienda_move_form" model="ir.ui.view">
         <field name="model">account.move</field>
         <field name="name">view_hacienda_move_form</field>
         <field name="inherit_id" ref="l10n_sv.sit_account_move_data_id"/>
         <field name="arch" type="xml">
+            <!-- Modificar la visibilidad de los campos para mantener el número de control -->
             <xpath expr="//field[@name='sit_qr_hacienda']" position="before">
                 <field name='hacienda_estado'/>
                 <field name='hacienda_codigoGeneracion_identificacion'/>
@@ -58,4 +60,5 @@
             </group>
         </field>
     </record>
+
 </odoo>
