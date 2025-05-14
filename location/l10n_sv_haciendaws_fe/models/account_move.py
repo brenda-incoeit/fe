@@ -669,6 +669,8 @@ class AccountMove(models.Model):
 
         # ——— 2) Refrescar token si hace falta ———
         today = fields.Date.context_today(self)
+
+        _logger.info("SIT company_id: %s", self.company_id)
         if not self.company_id.sit_token_fecha or self.company_id.sit_token_fecha.date() < today:
             self.company_id.get_generar_token()
 
