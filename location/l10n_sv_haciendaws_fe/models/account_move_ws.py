@@ -803,7 +803,9 @@ class AccountMove(models.Model):
         cuerpoDocumento = self.sit_base_map_invoice_info_cuerpo_documento_ndc()
         invoice_info["cuerpoDocumento"] = cuerpoDocumento[0]
         if str(invoice_info["cuerpoDocumento"]) == 'None':
-            raise UserError(_('La Factura no tiene linea de Productos Valida.'))        
+            raise UserError(_('La Factura no tiene linea de Productos Valida.'))
+
+        _logger.info("SIT resumen NC = c1=%s, c2=%s, c3=%s, c4=%s", cuerpoDocumento[1], cuerpoDocumento[2], cuerpoDocumento[3],  invoice_info["identificacion"])
         invoice_info["resumen"] = self.sit_ndc_base_map_invoice_info_resumen(cuerpoDocumento[1], cuerpoDocumento[2], cuerpoDocumento[3],  invoice_info["identificacion"]  )
         invoice_info["extension"] = self.sit_base_map_invoice_info_extension_ndc()
         invoice_info["apendice"] = None
@@ -836,9 +838,10 @@ class AccountMove(models.Model):
             invoice_info["numeroControl"] = f"DTE-{tipo_dte}-0000{cod_estable}-{correlativo}"
         else:
             invoice_info["numeroControl"] = self.name
-        invoice_info["codigoGeneracion"] = self.sit_generar_uuid()          #  company_id.sit_uuid.upper()
-        invoice_info["tipoModelo"] = int(self.sit_modelo_facturacion)
-        invoice_info["tipoOperacion"] = int(self.sit_tipo_transmision)
+        invoice_info["codigoGeneracion"] = self.hacienda_codigoGeneracion_identificacion #self.sit_generar_uuid()          #  company_id.sit_uuid.upper()
+        invoice_info["tipoModelo"] = int(self.journal_id.sit_modelo_facturacion)
+        invoice_info["tipoOperacion"] = int(self.journal_id.sit_tipo_transmision)
+
         tipoContingencia = int(self.sit_tipo_contingencia)
         invoice_info["tipoContingencia"] = tipoContingencia
         motivoContin = str(self.sit_tipo_contingencia_otro)
@@ -846,8 +849,10 @@ class AccountMove(models.Model):
         import datetime
         if self.fecha_facturacion_hacienda:
             FechaEmi = self.fecha_facturacion_hacienda
+            _logger.info("Fecha bd: ", FechaEmi)
         else:
             FechaEmi = datetime.datetime.now()
+            _logger.info("Fecha en sesion: %s", FechaEmi)
         _logger.info("SIT FechaEmi = %s (%s)", FechaEmi, type(FechaEmi))
         invoice_info["fecEmi"] = FechaEmi.strftime('%Y-%m-%d')
         invoice_info["horEmi"] = FechaEmi.strftime('%H:%M:%S')
@@ -862,49 +867,66 @@ class AccountMove(models.Model):
             invoice_info["tipoContingencia"] = tipoContingencia
         if invoice_info["tipoContingencia"] == 5:
             invoice_info["motivoContin"] = motivoContin
-        return invoice_info        
+        return invoice_info
 
     def sit_base_map_invoice_info_cuerpo_documento_ndc(self):
         lines = []
         item_numItem = 0
         total_Gravada = 0.0
         totalIva = 0.0
-        for line in self.invoice_line_ids:     
-            item_numItem += 1       
+        codigo_tributo = None  # Inicializamos la variable para asegurarnos de que tiene un valor predeterminado.
+        tax_ids_list = []  # Creamos una lista para almacenar los tax_ids.
+
+        _logger.info("Iniciando el mapeo de la información del documento NDC = %s", self.invoice_line_ids)
+
+        for line in self.invoice_line_ids:
+            item_numItem += 1
             line_temp = {}
             lines_tributes = []
             line_temp["numItem"] = item_numItem
             tipoItem = int(line.product_id.tipoItem.codigo or line.product_id.product_tmpl_id.tipoItem.codigo)
             line_temp["tipoItem"] = tipoItem
+            _logger.debug(
+                f"Procesando línea de factura: {line.product_id.name}, tipoItem: {tipoItem}.")  # Log en cada línea.
+
             if self.inv_refund_id:
                 line_temp["numeroDocumento"] = self.inv_refund_id.hacienda_codigoGeneracion_identificacion
             else:
-                line_temp["numeroDocumento"] = None 
+                line_temp["numeroDocumento"] = None
+
             line_temp["codigo"] = line.product_id.default_code
             codTributo = line.product_id.tributos_hacienda_cuerpo.codigo
             if codTributo == False:
                 line_temp["codTributo"] = None
             else:
-                line_temp["codTributo"] = line.product_id.tributos_hacienda_cuerpo.codigo
+                line_temp["codTributo"] = codTributo
+
             line_temp["descripcion"] = line.name
             line_temp["cantidad"] = line.quantity
             if not line.product_id.uom_hacienda:
                 uniMedida = 7
+                _logger.error(f"UOM no configurado para el producto: {line.product_id.name}.")  # Log de error
                 raise UserError(_("UOM de producto no configurado para:  %s" % (line.product_id.name)))
             else:
                 uniMedida = int(line.product_id.uom_hacienda.codigo)
+
             line_temp["uniMedida"] = int(uniMedida)
             line_temp["precioUni"] = round(line.price_unit, 4)
             line_temp["montoDescu"] = (
-                round(line_temp["cantidad"]  * (line.price_unit * (line.discount / 100)),2)or 0.0)         
-            line_temp["ventaNoSuj"] = 0.0 
+                    round(line_temp["cantidad"] * (line.price_unit * (line.discount / 100)), 2) or 0.0)
+            line_temp["ventaNoSuj"] = 0.0
             line_temp["ventaExenta"] = 0.0
-            ventaGravada = line_temp["cantidad"]  * (line.price_unit * (line.discount / 100))
+            ventaGravada = line_temp["cantidad"] * (line.price_unit * (line.discount / 100))
             line_temp["ventaGravada"] = round(ventaGravada, 2)
+
+            _logger.debug(
+                f"Venta gravada: {ventaGravada}, cantidad: {line_temp['cantidad']}, precio unitario: {line.price_unit}.")  # Log sobre cálculos.
+
             for line_tributo in line.tax_ids:
                 codigo_tributo_codigo = line_tributo.tributos_hacienda.codigo
-                codigo_tributo = line_tributo.tributos_hacienda
-            lines_tributes.append(codigo_tributo_codigo)
+                codigo_tributo = line_tributo.tributos_hacienda  # Asignamos el valor de `codigo_tributo`
+                lines_tributes.append(codigo_tributo_codigo)
+
             line_temp["tributos"] = lines_tributes
             vat_taxes_amounts = line.tax_ids.compute_all(
                 line.price_unit,
@@ -913,37 +935,51 @@ class AccountMove(models.Model):
                 product=line.product_id,
                 partner=self.partner_id,
             )
-            vat_taxes_amount =  vat_taxes_amounts['taxes'][0]['amount']
-            sit_amount_base = round( vat_taxes_amounts['taxes'][0]['base'], 2 )
+            vat_taxes_amount = vat_taxes_amounts['taxes'][0]['amount']
+            sit_amount_base = round(vat_taxes_amounts['taxes'][0]['base'], 2)
             price_unit_mas_iva = round(line.price_unit, 4)
+
             if line_temp["cantidad"] > 0:
                 price_unit = round(sit_amount_base / line_temp["cantidad"], 4)
             else:
                 price_unit = round(0.00, 4)
+
             line_temp["precioUni"] = price_unit
-            ventaGravada =  line_temp["cantidad"]  * line_temp["precioUni"] -   line_temp["montoDescu"]
-            total_Gravada +=  round(ventaGravada,4)
+            ventaGravada = line_temp["cantidad"] * line_temp["precioUni"] - line_temp["montoDescu"]
+            total_Gravada += round(ventaGravada, 4)
             line_temp["ventaGravada"] = round(ventaGravada, 4)
+
+            _logger.debug(f"Total gravada acumulado: {total_Gravada}.")  # Log del total gravado.
+
             if ventaGravada == 0.0:
                 line_temp["tributos"] = None
             else:
                 line_temp["tributos"] = lines_tributes
+
             if tipoItem == 4:
                 line_temp["uniMedida"] = 99
                 line_temp["codTributo"] = codTributo
-                line_temp["tributos"] = [ 20 ]
+                line_temp["tributos"] = [20]
             else:
                 line_temp["codTributo"] = None
                 line_temp["tributos"] = lines_tributes
+
             totalIva += vat_taxes_amount
             lines.append(line_temp)
-            self.check_parametros_linea_firmado(line_temp)
-        return lines, codigo_tributo, total_Gravada, line.tax_ids, totalIva
+            tax_ids_list.append(line.tax_ids)  # Almacenamos los tax_ids de la línea
+
+        _logger.info(
+            f"Proceso de mapeo finalizado. Total Gravada: {total_Gravada}, Total IVA: {totalIva}.")  # Log al finalizar la función.
+
+        return lines, codigo_tributo, total_Gravada, tax_ids_list, totalIva
 
     def sit_ndc_base_map_invoice_info_resumen(self, tributo_hacienda, total_Gravada, totalIva, identificacion):
         invoice_info = {}
         tributos = {}
         pagos = {}
+
+        _logger.info("SIT total gravado NC = %s", total_Gravada)
+
         invoice_info["totalNoSuj"] = 0
         invoice_info["totalExenta"] = 0
         invoice_info["totalGravada"] = round(total_Gravada, 2 )
@@ -993,8 +1029,8 @@ class AccountMove(models.Model):
         invoice_info["nombre"] = self.company_id.name
         invoice_info["codActividad"] = self.company_id.codActividad.codigo
         invoice_info["descActividad"] = self.company_id.codActividad.valores
-        if  self.company_id.nombreComercial:
-            invoice_info["nombreComercial"] = self.company_id.nombreComercial
+        if  self.company_id.nombre_comercial:
+            invoice_info["nombreComercial"] = self.company_id.nombre_comercial
         else:
             invoice_info["nombreComercial"] = None
         invoice_info["tipoEstablecimiento"] =  self.company_id.tipoEstablecimiento.codigo
@@ -1027,7 +1063,7 @@ class AccountMove(models.Model):
     def sit__ndc_relacionado(self):
         lines = []
         lines_temp = {}
-        lines_temp['tipoDocumento'] = '03'
+        lines_temp['tipoDocumento'] = self.reversed_entry_id.journal_id.sit_tipo_documento.codigo #'03'
         lines_temp['tipoGeneracion'] = 2
         lines_temp['numeroDocumento'] = self.inv_refund_id.hacienda_codigoGeneracion_identificacion
         from datetime import timedelta
