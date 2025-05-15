@@ -494,8 +494,8 @@ class AccountMove(models.Model):
         else:
             invoice_info["numeroControl"] = self.name
         invoice_info["codigoGeneracion"] = self.sit_generar_uuid()
-        invoice_info["tipoModelo"] = int(self.sit_modelo_facturacion)
-        invoice_info["tipoOperacion"] = int(self.sit_tipo_transmision)
+        invoice_info["tipoModelo"] = int(self.journal_id.sit_modelo_facturacion)
+        invoice_info["tipoOperacion"] = int(self.journal_id.sit_tipo_transmision)
         invoice_info["tipoContingencia"] = None
         invoice_info["motivoContin"] = None
 
@@ -523,72 +523,94 @@ class AccountMove(models.Model):
         return invoice_info        
 
     def sit_base_map_invoice_info_emisor(self):
-        _logger.info("SIT sit_base_map_invoice_info_emisor self = %s", self)
         invoice_info = {}
         direccion = {}
         nit=self.company_id.vat
         nit = nit.replace("-", "")
         invoice_info["nit"] = nit
         nrc= self.company_id.company_registry
-        if nrc:        
-            nrc = nrc.replace("-", "")        
+        if nrc:
+            nrc = nrc.replace("-", "")
         invoice_info["nrc"] = nrc
         invoice_info["nombre"] = self.company_id.name
         invoice_info["codActividad"] = self.company_id.codActividad.codigo
         invoice_info["descActividad"] = self.company_id.codActividad.valores
-        if  self.company_id.nombreComercial:
-            invoice_info["nombreComercial"] = self.company_id.nombreComercial
+        if  self.company_id.nombre_comercial:
+            invoice_info["nombreComercial"] = self.company_id.nombre_comercial
         else:
             invoice_info["nombreComercial"] = None
         invoice_info["tipoEstablecimiento"] =  self.company_id.tipoEstablecimiento.codigo
         direccion["departamento"] =  self.company_id.state_id.code
         direccion["municipio"] =  self.company_id.munic_id.code
         direccion["complemento"] =  self.company_id.street
-        _logger.info("SIT direccion self = %s", direccion)
         invoice_info["direccion"] = direccion
         if  self.company_id.phone:
             invoice_info["telefono"] =  self.company_id.phone
         else:
             invoice_info["telefono"] =  None
         invoice_info["correo"] =  self.company_id.email
-        invoice_info["codEstableMH"] =  None
-        invoice_info["codEstable"] =  None
-        invoice_info["codPuntoVentaMH"] =  None
-        invoice_info["codPuntoVenta"] =  None
-        return invoice_info        
-    
+        invoice_info["codEstableMH"] =  "M001"#self.journal_id.sit_codestable
+        invoice_info["codEstable"] =  "0001"#self.journal_id.sit_codestable
+        invoice_info["codPuntoVentaMH"] =  self.journal_id.sit_codpuntoventa
+        invoice_info["codPuntoVenta"] =  "0001"#self.journal_id.sit_codpuntoventa
+        return invoice_info
+
     def sit_base_map_invoice_info_receptor(self):
         _logger.info("SIT sit_base_map_invoice_info_receptor self = %s", self)
-        direccion_rec = {}
         invoice_info = {}
-         # Número de Documento (Nit)
-        #nit = self.partner_id.vat.replace("-", "") if self.partner_id.vat and isinstance(self.partner_id.vat, str) else None
-        nit = self.partner_id.dui.replace("-", "") if self.partner_id.dui and isinstance(self.partner_id.dui, str) else None
-        invoice_info["numDocumento"] = nit
-        # Establece 'tipoDocumento' como None si 'nit' es None
-        tipoDocumento = self.partner_id.l10n_latam_identification_type_id.codigo if self.partner_id.l10n_latam_identification_type_id and nit else None
-        invoice_info["tipoDocumento"] = tipoDocumento
-        # Número de Registro de Contribuyente (NRC)
-        nrc = self.partner_id.nrc.replace("-", "") if self.partner_id.nrc and isinstance(self.partner_id.nrc, str) else None
-        invoice_info["nrc"] = nrc
-        invoice_info["nombre"] = self.partner_id.name if self.partner_id.name else None
-        # Código y Descripción de Actividad
-        codActividad = self.partner_id.codActividad.codigo if self.partner_id.codActividad and hasattr(self.partner_id.codActividad, 'codigo') else None
-        invoice_info["codActividad"] = codActividad
-        descActividad = self.partner_id.codActividad.valores if self.partner_id.codActividad and hasattr(self.partner_id.codActividad, 'valores') else None
-        invoice_info["descActividad"] = descActividad
-        # Dirección
-        direccion_rec["departamento"] = self.partner_id.state_id.code if self.partner_id.state_id and hasattr(self.partner_id.state_id, 'code') else None
-        direccion_rec["municipio"] = self.partner_id.munic_id.code if self.partner_id.munic_id and hasattr(self.partner_id.munic_id, 'code') else None
-        direccion_rec["complemento"] = self.partner_id.street if self.partner_id.street else None
-         # Verifica si alguno de los campos de la dirección es None
-        if None in [direccion_rec["departamento"], direccion_rec["municipio"], direccion_rec["complemento"]]:
-            invoice_info["direccion"] = None
+
+        # 1) ¿qué DTE es?
+        tipo_dte = self.journal_id.sit_tipo_documento.codigo
+
+        # 2) campo base (NIT para 03, DUI para el resto)
+        if tipo_dte == '03':
+            raw_doc = self.partner_id.vat or ''
+            tipo_doc = '01'
         else:
-            invoice_info["direccion"] = direccion_rec
-        # Teléfono y Correo (Requeridos)
-        invoice_info["telefono"] = self.partner_id.phone if self.partner_id.phone else None
-        invoice_info["correo"] = self.partner_id.email if self.partner_id.email else None
+            raw_doc = self.partner_id.dui or ''
+            tipo_doc = getattr(self.partner_id.l10n_latam_identification_type_id, 'codigo', None)
+
+        # 3) limpio sólo dígitos
+        cleaned = re.sub(r'\D', '', raw_doc)
+        if not cleaned or not tipo_doc:
+            raise UserError(_(
+                "Receptor sin documento válido para DTE %s:\nraw=%r, tipo=%r") %
+                            (tipo_dte, raw_doc, tipo_doc)
+                            )
+
+        # 4) si es DTE 13, poner guión xxxxxxxx-x
+        if tipo_dte == '13':
+            if len(cleaned) != 9:
+                raise UserError(_("Para DTE 13 el DUI debe ser 9 dígitos (8+1). Se dieron %d.") % len(cleaned))
+            num_doc = f"{cleaned[:8]}-{cleaned[8]}"
+        else:
+            num_doc = cleaned
+
+        invoice_info['numDocumento'] = self.partner_id.dui or ''
+        invoice_info['tipoDocumento'] = tipo_doc
+
+        # 5) NRC
+        raw_nrc = self.partner_id.nrc or ''
+        invoice_info['nrc'] = re.sub(r'\D', '', raw_nrc) or None
+
+        # 6) Nombre y actividad
+        invoice_info['nombre'] = self.partner_id.name or ''
+        invoice_info['codActividad'] = getattr(self.partner_id.codActividad, 'codigo', '')
+        invoice_info['descActividad'] = getattr(self.partner_id.codActividad, 'valores', '')
+
+        # 7) Dirección si está completa
+        depto = getattr(self.partner_id.state_id, 'code', None)
+        muni = getattr(self.partner_id.munic_id, 'code', None)
+        compo = self.partner_id.street or ''
+        invoice_info['direccion'] = (
+            {'departamento': depto, 'municipio': muni, 'complemento': compo}
+            if depto and muni and compo else None
+        )
+
+        # 8) Teléfono y correo
+        invoice_info['telefono'] = self.partner_id.phone or ''
+        invoice_info['correo'] = self.partner_id.email or ''
+
         return invoice_info
 
     def sit_base_map_invoice_info_cuerpo_documento(self):
