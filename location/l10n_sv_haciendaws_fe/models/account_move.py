@@ -189,6 +189,7 @@ class AccountMove(models.Model):
 
                 tipo_dte = journal.sit_tipo_documento.codigo
                 cod_estable = journal.sit_codestable
+                today = fields.Date.context_today(self)
                 sequence_code = f'dte.{tipo_dte}'
 
                 _logger.info("SIT Generando número de control desde create() con secuencia=%s, dte=%s, estable=%s",
@@ -205,15 +206,25 @@ class AccountMove(models.Model):
                         raise UserError(
                             _("No se pudo generar número de control con la secuencia '%s'.") % sequence_code)
 
-                    if not self.search_count([('name', '=', numero_control)]):
-                        vals['name'] = numero_control  # 👉 Aquí sí lo asignamos al diccionario original
-                        _logger.info("SIT Número de control generado en create(): %s", numero_control)
+                    # Comprobamos unicidad *por journal* para evitar colisiones
+                    domain = [
+                        ('name', '=', numero_control),
+                        ('journal_id', '=', journal.id),
+                    ]
+                    if not self.search_count(domain):
+                        vals['name'] = numero_control
+                        _logger.info("SIT Número de control generado para diario %s: %s",
+                                     journal.name, numero_control)
                         break
                     else:
-                        _logger.warning("SIT Número duplicado detectado en create(): %s. Reintentando...",
-                                        numero_control)
+                        _logger.warning(
+                            "SIT Número duplicado detectado en diario %s: %s. Reintentando...",
+                            journal.name, numero_control
+                        )
                 else:
-                    raise UserError(_("No se pudo generar un número de control único después de varios intentos."))
+                    raise UserError(_(
+                        "No se pudo generar un número de control único después de varios intentos."
+                    ))
 
             if not vals.get('partner_id'):
                 raise UserError(_("No se pudo obtener el partner relacionado con el crédito fiscal."))
@@ -512,6 +523,7 @@ class AccountMove(models.Model):
                 # Firmar el documento y generar el DTE
                 payload = invoice.obtener_payload('production', sit_tipo_documento)
                 documento_firmado = invoice.firmar_documento('production', payload)
+
                 if documento_firmado:
                     _logger.info("SIT Firmado de documento")
                     payload_dte = invoice.sit_obtener_payload_dte_info(ambiente, documento_firmado)
@@ -533,10 +545,12 @@ class AccountMove(models.Model):
                                                         invoice.fecha_facturacion_hacienda)
                         invoice.sit_qr_hacienda = codigo_qr
                         invoice.state = "draft"
-                        invoice.sit_json_respuesta = json.dumps(Resultado['dteJson'], ensure_ascii=False)
-                        json_str = json.dumps(Resultado['dteJson'])
+
+                        dte = payload['dteJson']
+                        invoice.sit_json_respuesta = json.dumps(dte, ensure_ascii=False)
+                        json_str = json.dumps(dte)
                         json_base64 = base64.b64encode(json_str.encode('utf-8'))
-                        file_name = Resultado['dteJson']["identificacion"]["numeroControl"] + '.json'
+                        file_name = dte["identificacion"]["numeroControl"] + '.json'
                         invoice.env['ir.attachment'].sudo().create({
                             'name': file_name,
                             'datas': json_base64,
@@ -634,7 +648,7 @@ class AccountMove(models.Model):
             ambiente = "00"
         else:
             ambiente = "01"
-        if sit_tipo_documento == "01":
+        if sit_tipo_documento in ("01", "13"):
             invoice_info = self.sit_base_map_invoice_info()
             _logger.info("SIT invoice_info FE = %s", invoice_info)
             self.check_parametros_firmado()
