@@ -873,7 +873,7 @@ class AccountMove(models.Model):
             FechaEmi = self.fecha_facturacion_hacienda
             _logger.info("Fecha bd: ", FechaEmi)
         else:
-            FechaEmi = datetime.datetime.now()
+            FechaEmi = datetime.now(ZoneInfo("America/El_Salvador"))
             _logger.info("Fecha en sesion: %s", FechaEmi)
         _logger.info("SIT FechaEmi = %s (%s)", FechaEmi, type(FechaEmi))
         invoice_info["fecEmi"] = FechaEmi.strftime('%Y-%m-%d')

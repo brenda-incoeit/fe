@@ -93,7 +93,8 @@ class ResCompany(models.Model):
             pwd = company_id.sit_token_pass
 
         enviroment_type = self._get_environment_type()
-        host = 'https://apitest.dtes.mh.gob.sv' if enviroment_type == 'homologation' else 'https://api.dtes.mh.gob.sv'
+        #host = 'https://apitest.dtes.mh.gob.sv' if enviroment_type == 'homologation' else 'https://api.dtes.mh.gob.sv'
+        host = 'https://api.dtes.mh.gob.sv' if enviroment_type == 'homologation' else 'https://api.dtes.mh.gob.sv'
         url = host + '/seguridad/auth'
         _logger.info("Url token = %s", url)
 
