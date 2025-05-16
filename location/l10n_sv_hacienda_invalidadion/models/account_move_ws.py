@@ -108,7 +108,7 @@ class AccountMove(models.Model):
             "codigoGeneracion": self.hacienda_codigoGeneracion_identificacion,
             "selloRecibido": self.hacienda_selloRecibido,
             "numeroControl": self.name,
-            "montoIva": None
+            "montoIva": round(self.amount_total, 2 ) #None
         }
 
         fecha_facturacion = (datetime.strptime(self.fecha_facturacion_hacienda, '%Y-%m-%d')
@@ -118,7 +118,7 @@ class AccountMove(models.Model):
         invoice_info["fecEmi"] = adjusted_fecha.strftime('%Y-%m-%d')
         invoice_info["codigoGeneracionR"] = None#self.sit_codigoGeneracionR or None
 
-        nit = self.partner_id.vat.replace("-", "") if isinstance(self.partner_id.vat, str) and self.partner_id.vat.strip() else None
+        nit = self.partner_id.dui.replace("-", "") if isinstance(self.partner_id.dui, str) and self.partner_id.dui.strip() else None
         invoice_info["numDocumento"] = nit
         invoice_info["tipoDocumento"] = self.partner_id.l10n_latam_identification_type_id.codigo if nit and self.partner_id.l10n_latam_identification_type_id else None
         invoice_info["nombre"] = self.partner_id.name or None
@@ -131,14 +131,21 @@ class AccountMove(models.Model):
     def sit_invalidacion_base_map_invoice_info_motivo(self):
         _logger.info("SIT [INICIO] Motivo anulación: self.id=%s", self.id)
 
-        nit = self.company_id.partner_id.vat.replace("-", "")
+        _logger.info("SIT Empresa-Receptor: self.id=%s", self.partner_id)
+        dui = self.partner_id.dui
+        if not dui:
+            raise UserError(
+                _("No se encontró el DUI del responsable en la empresa. Por favor verifique el campo DUI en el partner de la compañía."))
+
+        #nit = self.company_id.partner_id.dui.replace("-", "")
+        nit = dui.replace("-", "")
         invoice_info = {
             "tipoAnulacion": int(self.sit_tipoAnulacion),
             "motivoAnulacion": self.sit_motivoAnulacion if self.sit_tipoAnulacion == 3 else None,
-            "nombreResponsable": self.company_id.partner_id.name,
+            "nombreResponsable": self.partner_id.name,
             "tipDocResponsable": "36",
             "numDocResponsable": nit,
-            "nombreSolicita": self.company_id.partner_id.name,
+            "nombreSolicita": self.partner_id.name,
             "tipDocSolicita": "36",
             "numDocSolicita": nit
         }
