@@ -27,6 +27,8 @@ import pytz
 
 _logger = logging.getLogger(__name__)
 
+EXTRA_ADDONS = r'C:\Users\INCOE\Documents\GitHub\fe\location\mnt\extra-addons\src'
+
 
 class AccountMove(models.Model):
     _inherit = "account.move"
@@ -522,7 +524,12 @@ class AccountMove(models.Model):
             border=4,  # Ancho del borde del código QR
         )
         codigo_qr.add_data(texto_codigo_qr)
-        os.chdir('/mnt/extra-addons/src')
+        import os
+
+        if os.name == 'nt':  # Windows
+            os.chdir(EXTRA_ADDONS)
+        else:  # Linux/Unix
+            os.chdir('/mnt/extra-addons/src')
         directory = os.getcwd()
         _logger.info("SIT directory =%s", directory)
         basewidth = 100
@@ -558,7 +565,12 @@ class AccountMove(models.Model):
             border=1,  # Ancho del borde del código QR
         )
         codigo_qr.add_data(texto_codigo_qr)
-        os.chdir('/mnt/extra-addons/src')
+        import os
+
+        if os.name == 'nt':  # Windows
+            os.chdir(EXTRA_ADDONS)
+        else:  # Linux/Unix
+            os.chdir('/mnt/extra-addons/src')
         directory = os.getcwd()
 
         _logger.info("SIT directory =%s", directory)

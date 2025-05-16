@@ -28,7 +28,6 @@
     # always loaded
     'data': [
         "views/account_move_views.xml",
-        "views/account_anulacion_view_prueba.xml",
     ],
     # only loaded in demonstration mode
     "demo": [],
