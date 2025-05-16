@@ -7,7 +7,8 @@ from typing import Any
 import pytz
 from odoo import fields, models, api, _
 from odoo.exceptions import UserError
-from datetime import datetime
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 import base64
 import pyqrcode
 import logging
@@ -484,7 +485,7 @@ class AccountMove(models.Model):
             tipo_dte = self.journal_id.sit_tipo_documento.codigo or '01'
 
             # Obtener el código de establecimiento desde el diario
-            cod_estable = self.journal_id.cod_sit_estable or '0000MOO1'
+            cod_estable = self.journal_id.cod_sit_estable or '0000M001'
 
             # Obtener la secuencia desde ir.sequence con padding 15
             correlativo = self.env['ir.sequence'].next_by_code('dte.secuencia') or '0'
@@ -851,7 +852,7 @@ class AccountMove(models.Model):
             tipo_dte = self.journal_id.sit_tipo_documento.codigo or '01'
 
             # Obtener el código de establecimiento desde el diario
-            cod_estable = self.journal_id.cod_sit_estable or '0000MOO1'
+            cod_estable = self.journal_id.cod_sit_estable or '0000M001'
 
             # Obtener la secuencia desde ir.sequence con padding 15
             correlativo = self.env['ir.sequence'].next_by_code('dte.secuencia') or '0'
@@ -869,7 +870,11 @@ class AccountMove(models.Model):
         invoice_info["tipoContingencia"] = tipoContingencia
         motivoContin = str(self.sit_tipo_contingencia_otro)
         invoice_info["motivoContin"] = motivoContin
-        import datetime
+        import datetime, pytz, os
+        os.environ["TZ"] = "America/El_Salvador"
+        fecha_actual = datetime.datetime.now(pytz.timezone("America/El_Salvador"))
+        _logger.info("Fecha en sesion 1: %s", fecha_actual)
+
         if self.fecha_facturacion_hacienda:
             FechaEmi = self.fecha_facturacion_hacienda
             _logger.info("Fecha bd: ", FechaEmi)

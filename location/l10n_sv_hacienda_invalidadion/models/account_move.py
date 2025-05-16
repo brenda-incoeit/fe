@@ -93,7 +93,7 @@ class AccountMove(models.Model):
 
     # CAMPOS INVALIDACION 
     sit_invalidar = fields.Boolean('Invalidar ?',  copy=False,   default=False)
-    sit_codigoGeneracion_invalidacion = fields.Char(string="codigoGeneracion" , copy=False,  )
+    sit_codigoGeneracion_invalidacion = fields.Char(string="codigoGeneracion" , copy=False, store=True)
     sit_fec_hor_Anula = fields.Datetime(string="Fecha de Anulación" , copy=False, )
     
     # sit_codigoGeneracionR = fields.Char(string="codigoGeneracion que Reemplaza" , copy=False, )
@@ -117,7 +117,8 @@ class AccountMove(models.Model):
     # sit_numDocSolicita = fields.Char(related="sit_nombreSolicita.dui", string="Número de documento de identificación solicitante" , copy=False, )
     sit_numDocSolicita = fields.Char(related="sit_nombreSolicita.vat", string="Número de documento de identificación solicitante" , copy=False, )
     sit_factura_a_reemplazar = fields.Many2one('account.move', string="Documento que reeemplaza", copy=False)
-    
+
+    @api.model
     def _get_tipo_Anulacion_selection(self):
         return [
             ('1', '1-Error en la Información del Documento Tributario Electrónico a invalidar.'),
@@ -128,6 +129,11 @@ class AccountMove(models.Model):
 #---------------------------------------------------------------------------------------------
 # ANULAR FACTURA
 #---------------------------------------------------------------------------------------------
+    def button_anulacion(self):
+        for rec in self:
+            _logger.info("⚠️ Botón de anulación presionado para: %s", rec.name)
+            raise UserError("Simulación: Esta sería la lógica de anulación.")
+
     def button_anul(self):
         '''Generamos la Anulación de la Factura
     '''
@@ -143,6 +149,20 @@ class AccountMove(models.Model):
 
             # Obtener el tipo de documento
             sit_tipo_documento = invoice.journal_id.sit_tipo_documento.codigo
+
+            #Agregar fecha anulacion
+            fecha_actual = (datetime.now() - timedelta(hours=6)).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + '-06:00'
+            fhProcesamiento = datetime.fromisoformat(fecha_actual)
+            # Opcional: convertirlo a hora local si Hacienda lo da en UTC
+            tz_sv = pytz.timezone('America/El_Salvador')
+            fhProcesamiento = fhProcesamiento.astimezone(tz_sv)
+
+            # Quitar zona horaria si el campo en Odoo es naive (sin tzinfo)
+            fhProcesamiento = fhProcesamiento.replace(tzinfo=None)
+
+            # Guardar en el campo correcto
+            self.sit_fec_hor_Anula = fhProcesamiento
+            _logger.info("SIT fecha anulacion: =%s", self.sit_fec_hor_Anula)
 
             # Si el tipo de documento no es 01 ni 11, verificar la fecha de facturación
             if sit_tipo_documento not in ['01', '11']:
@@ -161,6 +181,11 @@ class AccountMove(models.Model):
 
                     # Calcular la diferencia en horas
                     time_diff = now_utc - fecha_factura_utc
+
+                    invoice.write({
+                        'sit_fec_hor_Anula': fhProcesamiento,
+                    })
+
                     if time_diff.total_seconds() > 24 * 3600:
                         raise UserError(_("La anulación no puede realizarse. La factura tiene más de 24 horas."))
         if not self.hacienda_estado_anulacion:
@@ -214,8 +239,8 @@ class AccountMove(models.Model):
                     self.check_parametros_dte_invalidacion(payload_dte)
                     Resultado = invoice.generar_dte_invalidacion(validation_type, payload_dte, payload_original)
                     
-                    from datetime import datetime, timedelta
-                    import pytz
+                    #from datetime import datetime, timedelta
+                    #import pytz
                     import re
 
                     if Resultado:
@@ -307,7 +332,8 @@ class AccountMove(models.Model):
         else:
             ambiente = "01"
         # host = 'http://service-it.com.ar:8113'
-        host = 'http://svfe-api-firmador:8113'
+        #host = 'http://svfe-api-firmador:8113'
+        host = "http://192.168.2.25:8113"
         url = host + '/firmardocumento/'
         headers = {
             'Content-Type': 'application/json'
@@ -369,19 +395,20 @@ class AccountMove(models.Model):
 
 
     def generar_dte_invalidacion(self, enviroment_type, payload, payload_original):
-        _logger.info("SIT  Generando DTE Invalidacion")
+        _logger.info("SIT  Generando DTE Invalidacion =%s", payload)
         if enviroment_type == 'homologation': 
-            host = 'https://apitest.dtes.mh.gob.sv' 
+            #host = 'https://apitest.dtes.mh.gob.sv'
+            host = "https://api.dtes.mh.gob.sv"
         else:
-            host = 'https://api.dtes.mh.gob.sv'
+            host = "https://api.dtes.mh.gob.sv"
         url = host + '/fesv/anulardte'
         agente = self.company_id.sit_token_user
         authorization = self.company_id.sit_token
 
         headers = {
          'Content-Type': 'application/json', 
-         'User-Agent': agente,
-         'Authorization': authorization
+         'User-Agent': 'Odoo', #agente,
+         'Authorization': f"Bearer {self.company_id.sit_token}" #authorization
         }
         try:
             response = requests.request("POST", url, headers=headers, data=json.dumps(payload))

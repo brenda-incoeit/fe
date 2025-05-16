@@ -78,7 +78,7 @@ class AccountMove(models.Model):
             tipo_dte = self.journal_id.sit_tipo_documento.codigo or '01'
 
             # Obtener el código de establecimiento desde el diario
-            cod_estable = self.journal_id.cod_sit_estable or '0000MOO1'
+            cod_estable = self.journal_id.cod_sit_estable or '0000M001'
 
             # Obtener la secuencia desde ir.sequence con padding 15
             correlativo = self.env['ir.sequence'].next_by_code('dte.secuencia') or '0'
