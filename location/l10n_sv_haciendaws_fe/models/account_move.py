@@ -174,6 +174,18 @@ class AccountMove(models.Model):
         for vals in vals_list:
             name = vals.get('name')
 
+            #Extraer el partner id
+            partner_id = vals.get('partner_id')
+            if not partner_id:
+                for command in vals.get('line_ids', []):
+                    if isinstance(command, tuple) and len(command) == 3:
+                        line_vals = command[2]
+                        partner_id = line_vals.get('partner_id')
+                        if partner_id:
+                            break
+
+            _logger.info("SIT Partner detectado (desde líneas o principal): %s", partner_id)
+
             if name and name != '/' and name.startswith('DTE-'):
                 _logger.info("SIT create() detecta nombre preasignado o válido: %s", name)
             else:
@@ -238,6 +250,7 @@ class AccountMove(models.Model):
                 _logger.info("Código de generación ya definido, se mantiene: %s",
                              vals['hacienda_codigoGeneracion_identificacion'])
 
+        _logger.info("SIT Partner fin: %s", vals.get('partner_id'))
         self._fields['name'].required = False
         records = super().create(vals_list)
 
@@ -478,7 +491,7 @@ class AccountMove(models.Model):
 
                 _logger.info("SIT action_post type_report = %s", type_report)
                 _logger.info("SIT action_post sit_tipo_documento = %s", sit_tipo_documento)
-
+                _logger.info("SIT Receptor = %s, info=%s", invoice.partner_id, invoice.partner_id.parent_id)
                 # Validación del partner y otros parámetros según el tipo de DTE
                 if type_report == 'ccf':
                     # Validaciones específicas para CCF
@@ -547,8 +560,8 @@ class AccountMove(models.Model):
                         invoice.state = "draft"
 
                         dte = payload['dteJson']
-                        invoice.sit_json_respuesta = json.dumps(dte, ensure_ascii=False)
-                        json_str = json.dumps(dte)
+                        invoice.sit_json_respuesta = json.dumps(dte, ensure_ascii=False, default=str)
+                        json_str = json.dumps(dte, ensure_ascii=False, default=str)
                         json_base64 = base64.b64encode(json_str.encode('utf-8'))
                         file_name = dte["identificacion"]["numeroControl"] + '.json'
                         invoice.env['ir.attachment'].sudo().create({
@@ -819,7 +832,7 @@ class AccountMove(models.Model):
             border=4,  # Ancho del borde del código QR
         )
         codigo_qr.add_data(texto_codigo_qr)
-        #os.chdir('C:/Users/INCOE/PycharmProjects/odoo18/fe/location/mnt/src')
+        #os.chdir('C:/Users/INCOE/PycharmProjects/fe/location/mnt/src')
         os.chdir('C:/Users/INCOE/Documents/GitHub/fe/location/mnt/certificado')
         directory = os.getcwd()
         _logger.info("SIT directory =%s", directory)
@@ -852,7 +865,7 @@ class AccountMove(models.Model):
             border=1,  # Ancho del borde del código QR
         )
         codigo_qr.add_data(texto_codigo_qr)
-        os.chdir('C:/Users/INCOE/PycharmProjects/odoo18/fe/location/mnt/src')
+        os.chdir('C:/Users/INCOE/Documents/GitHub/fe/location/mnt')
         directory = os.getcwd()
 
         _logger.info("SIT directory =%s", directory)

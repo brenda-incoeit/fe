@@ -177,7 +177,7 @@ class HaciendaCertificateAlias(models.Model):
     def generate_key(self, key_length=2048):
         """ """
         # TODO reemplazar todo esto por las funciones nativas de pyafipws
-        directorio='C:/Users/INCOE/PycharmProjects/odoo18/fe/location/mnt'
+        directorio='C:/Users/INCOE/Documents/GitHub/fe/location/mnt'
         listado_directorio = os.listdir( directorio) 
 
         # doc = minidom.parse( directorio + '/PrivateKey_06140902221032.key')
@@ -264,7 +264,7 @@ class HaciendaCertificateAlias(models.Model):
         # self.certificate_file_text.unlink()
 
 
-        directorio='C:/Users/INCOE/Documents/GitHub/odoo18/fe/location/mnt'
+        directorio='C:/Users/INCOE/Documents/GitHub/fe/location/mnt'
         listado_directorio = os.listdir( directorio) 
         _logger.info("SIT selfl %s, %s", self.id, self.ids)
         _logger.info("SIT directorio actual %s", directorio)

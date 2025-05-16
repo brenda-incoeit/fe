@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "l10n_sv Invalidación",
+    'name': "l10n_sv_hacienda_invalidadion",
 
     'summary': """
         Proceso de invalidadion
@@ -28,8 +28,7 @@
     # always loaded
     'data': [
         "views/account_move_views.xml",
-       
-
+        "views/account_anulacion_view_prueba.xml",
     ],
     # only loaded in demonstration mode
     "demo": [],

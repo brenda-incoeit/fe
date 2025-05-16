@@ -11,7 +11,7 @@
         "base_sv",
         "l10n_invoice_sv",
         "account_debit_note",
-        # "l10n_latam_invoice_document"
+        "l10n_latam_invoice_document"
     ],
     "external_dependencies": {},
     "data": [
