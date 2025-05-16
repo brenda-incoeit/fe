@@ -14,6 +14,14 @@
                         class="btn btn-danger"
                         groups="account.group_account_invoice"/>
             </xpath>
+            <!-- Aquí agregamos el botón "Anular factura" -->
+            <xpath expr="//header/button[@name='action_post']" position="after">
+                <button name="button_anulacion"
+                        string="Anular factura"
+                        type="object"
+                        class="btn btn-danger"
+                        groups="account.group_account_invoice"/>
+            </xpath>
         </field>
     </record>
 
