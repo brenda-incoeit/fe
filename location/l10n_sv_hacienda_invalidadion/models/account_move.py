@@ -125,12 +125,6 @@ class AccountMove(models.Model):
             ('3', '3-Otro'),
         ]
 
-
-
-
-
-
-
 #---------------------------------------------------------------------------------------------
 # ANULAR FACTURA
 #---------------------------------------------------------------------------------------------
@@ -138,12 +132,9 @@ class AccountMove(models.Model):
         '''Generamos la Anulación de la Factura
     '''
 
-
-
         # MENSAJE="SIT Respuesta = button_anul" 
         # raise UserError(_(MENSAJE))
 
-    
         # NUMERO_FACTURA= super(AccountMove, self).action_post()
         # _logger.info("SIT NUMERO FACTURA =%s", NUMERO_FACTURA)
         for invoice in self:

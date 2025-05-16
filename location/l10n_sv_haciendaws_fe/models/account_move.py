@@ -547,8 +547,8 @@ class AccountMove(models.Model):
                         invoice.state = "draft"
 
                         dte = payload['dteJson']
-                        invoice.sit_json_respuesta = json.dumps(dte, ensure_ascii=False)
-                        json_str = json.dumps(dte)
+                        invoice.sit_json_respuesta = json.dumps(dte, ensure_ascii=False, default=str)
+                        json_str = json.dumps(dte, default=str, ensure_ascii=False)
                         json_base64 = base64.b64encode(json_str.encode('utf-8'))
                         file_name = dte["identificacion"]["numeroControl"] + '.json'
                         invoice.env['ir.attachment'].sudo().create({
@@ -659,6 +659,9 @@ class AccountMove(models.Model):
         elif sit_tipo_documento == "05":
             invoice_info = self.sit_base_map_invoice_info_ndc()
             self.check_parametros_firmado()
+        elif sit_tipo_documento == "06":
+            invoice_info = self.sit_base_map_invoice_info_ndd()
+            self.check_parametros_firmado()
         elif sit_tipo_documento == "11":
             invoice_info = self.sit_base_map_invoice_info_fex()
             _logger.info("SIT invoice_info FEX = %s", invoice_info)
@@ -670,80 +673,68 @@ class AccountMove(models.Model):
         _logger.info("SIT payload_data =%s", invoice_info)
         return invoice_info
 
-# FRANCISCO # SE OBTIENE EL JWT Y SE ENVIA A HACIENDA PARA SU VALIDACION
+
+    # FRANCISCO # SE OBTIENE EL JWT Y SE ENVIA A HACIENDA PARA SU VALIDACION
     def generar_dte(self, environment_type, payload, payload_original):
         """
         1) Refresca el token si caducó.
         2) Si no hay JWT en payload['documento'], llama al firmador.
         3) Envía el JWT firmado a Hacienda.
+        4) Gestiona el caso 004 (YA EXISTE) para no dejar en borrador.
         """
         # ——— 1) Selección de URL de Hacienda ———
-        host = 'https://apitest.dtes.mh.gob.sv' if environment_type == 'homologation' else 'https://api.dtes.mh.gob.sv'
+        host = (
+            "https://apitest.dtes.mh.gob.sv"
+            if environment_type == "homologation"
+            else "https://api.dtes.mh.gob.sv"
+        )
         url_receive = f"{host}/fesv/recepciondte"
 
         # ——— 2) Refrescar token si hace falta ———
         today = fields.Date.context_today(self)
-
-        _logger.info("SIT company_id: %s", self.company_id)
         if not self.company_id.sit_token_fecha or self.company_id.sit_token_fecha.date() < today:
             self.company_id.get_generar_token()
 
         headers = {
-            'Content-Type': 'application/json',
-            'User-Agent': 'Odoo',
-            'Authorization': f"Bearer {self.company_id.sit_token}",
+            "Content-Type": "application/json",
+            "User-Agent": "Odoo",
+            "Authorization": f"Bearer {self.company_id.sit_token}",
         }
 
         # ——— 3) Obtener o firmar el JWT ———
-        jwt_token = payload.get('documento')
-        if isinstance(jwt_token, str) and jwt_token.strip():
-            _logger.info("SIT saltando firma: JWT ya existe")
-            _logger.info("SI ME ENCUENTRO EN EL LA CARPETA DE GIT")
-        else:
-            # Determinar URL del firmador
-            firmador_url = getattr(self.company_id, 'sit_firmador', None) \
-                           or 'http://192.168.2.25:8113/firmardocumento'
-
+        jwt_token = payload.get("documento")
+        if not (isinstance(jwt_token, str) and jwt_token.strip()):
+            firmador_url = (
+                    getattr(self.company_id, "sit_firmador", None)
+                    or "http://192.168.2.25:8113/firmardocumento"
+            )
             sign_payload = {
-                "nit": payload_original['dteJson']['emisor']['nit'],
+                "nit": payload_original["dteJson"]["emisor"]["nit"],
                 "activo": True,
-                "passwordPri": payload_original.get('passwordPri')
+                "passwordPri": payload_original.get("passwordPri")
                                or self.company_id.sit_password
-                               or payload_original['dteJson'].get('passwordPri'),
-                "dteJson": payload_original['dteJson'],
+                               or payload_original["dteJson"].get("passwordPri"),
+                "dteJson": payload_original["dteJson"],
             }
-            _logger.info("SIT firmando DTE: %s", sign_payload)
-
-            try:
-                resp_sign = requests.post(
-                    firmador_url,
-                    headers={'Content-Type': 'application/json'},
-                    json=sign_payload,
-                    timeout=30
-                )
-                resp_sign.raise_for_status()
-                data_sign = resp_sign.json()
-            except Exception as e:
-                raise UserError(_("Error al firmar DTE: %s") % e)
-
-            if data_sign.get('status') != 'OK':
-                raise UserError(_("Firma rechazada: %s – %s") %
-                                (data_sign.get('status'), data_sign.get('message', 'sin detalle')))
-
-            jwt_token = data_sign['body']
-            _logger.info("SIT JWT recibido: %s...", jwt_token[:30])
+            resp_sign = requests.post(
+                firmador_url, headers={"Content-Type": "application/json"}, json=sign_payload, timeout=30
+            )
+            resp_sign.raise_for_status()
+            data_sign = resp_sign.json()
+            if data_sign.get("status") != "OK":
+                raise UserError(_("Firma rechazada: %s – %s") % (data_sign.get("status"), data_sign.get("message", "")))
+            jwt_token = data_sign["body"]
 
         # ——— 4) Construir el payload para Hacienda ———
-        ident = payload_original['dteJson']['identificacion']
+        ident = payload_original["dteJson"]["identificacion"]
         send_payload = {
-            "ambiente": ident['ambiente'],
+            "ambiente": ident["ambiente"],
             "idEnvio": int(self.id),
-            "tipoDte": ident['tipoDte'],
-            "version": int(ident.get('version', 3)),
+            "tipoDte": ident["tipoDte"],
+            "version": int(ident.get("version", 3)),
             "documento": jwt_token,
-            "codigoGeneracion": ident['codigoGeneracion'],
+            "codigoGeneracion": ident["codigoGeneracion"],
         }
-        _logger.info("SIT enviando a MH: %s", send_payload)
 
         # ——— 5) Envío a Hacienda ———
         try:
@@ -751,23 +742,47 @@ class AccountMove(models.Model):
         except Exception as e:
             raise UserError(_("Error de conexión con Hacienda: %s") % e)
 
-        _logger.info("SIT MH status=%s text=%s", resp.status_code, resp.text)
-        if resp.status_code != 200:
-            try:
-                detail = resp.json()
-            except ValueError:
-                detail = resp.text or 'sin detalle'
-            raise UserError(_("Error MH (HTTP %s): %s") % (resp.status_code, detail))
+        # Intentamos parsear JSON incluso si es 400
+        try:
+            data = resp.json()
+        except ValueError:
+            data = {}
 
-        data = resp.json()
-        estado = data.get('estado')
-        if estado == 'RECHAZADO':
-            raise UserError(_("Rechazado por MH: %s – %s") %
-                            (data.get('clasificaMsg'), data.get('descripcionMsg')))
-        if estado == 'PROCESADO':
+        _logger.info("SIT MH status=%s text=%s", resp.status_code, resp.text)
+
+        # ——— 6) Manejo especial de códigoMsg '004' ———
+        if resp.status_code == 400 and data.get("clasificaMsg") == "11" and data.get("codigoMsg") == "004":
+            # Ya existe un registro con ese codigoGeneracion
+            _logger.warning("MH 004 → YA EXISTE, marcando como registrado en Odoo")
+            self.write({
+                "hacienda_estado": "PROCESADO",
+                "hacienda_codigoGeneracion_identificacion": data.get("codigoGeneracion"),
+                "hacienda_selloRecibido": data.get("selloRecibido"),
+                "hacienda_clasificaMsg": data.get("clasificaMsg"),
+                "hacienda_codigoMsg": data.get("codigoMsg"),
+                "hacienda_descripcionMsg": data.get("descripcionMsg"),
+                "hacienda_observaciones": ", ".join(data.get("observaciones") or []),
+                "state": "posted",
+            })
+            # Nota en el chatter
+            self.message_post(
+                body=_("Documento ya existente en Hacienda: %s") % data.get("descripcionMsg")
+            )
             return data
 
-        # ——— Caso inesperado ———
+        # ——— 7) Errores HTTP distintos de 200 ———
+        if resp.status_code != 200:
+            raise UserError(_("Error MH (HTTP %s): %s") % (resp.status_code, data or resp.text))
+
+        # ——— 8) Flujo normal cuando llega HTTP 200 ———
+        estado = data.get("estado")
+        if estado == "RECHAZADO":
+            raise UserError(_("Rechazado por MH: %s – %s") %
+                            (data.get("clasificaMsg"), data.get("descripcionMsg")))
+        if estado == "PROCESADO":
+            return data
+
+        # ——— 9) Caso realmente inesperado ———
         raise UserError(_("Respuesta inesperada de MH: %s") % data)
 
     def _autenticar(self,user,pwd):
