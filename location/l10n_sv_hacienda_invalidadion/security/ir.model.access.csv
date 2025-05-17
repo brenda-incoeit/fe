@@ -1,2 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_l10n_sv_hacienda_invalidacion,l10n_sv_hacienda_invalidacion,model_l10n_sv_hacienda_invalidacion,base.group_user,1,1,1,1
+access_l10n_sv_hacienda_invalidacion,access_l10n_sv_hacienda_invalidacion,model_account_move,base.group_user,1,1,1,1
+access_account_move_invalidation_user,access_account_move_invalidation_user,model_account_move_invalidation,base.group_user,1,1,1,1
+

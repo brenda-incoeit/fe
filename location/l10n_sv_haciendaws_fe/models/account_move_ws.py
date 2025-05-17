@@ -434,6 +434,7 @@ class AccountMove(models.Model):
             invoice_info["docuRecibe"] = nit
         invoice_info["observaciones"] = None
         invoice_info["placaVehiculo"] = None
+        invoice_info = None
         return invoice_info
 
 

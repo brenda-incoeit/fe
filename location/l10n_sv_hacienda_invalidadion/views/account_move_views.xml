@@ -8,10 +8,11 @@
         <field name="arch" type="xml">
             <!-- Aquí agregamos el botón "Anular factura" -->
             <xpath expr="//header/button[@name='action_post']" position="after">
-                <button name="button_anul"
+                <button name="action_button_anulacion"
                         string="Anular factura"
                         type="object"
                         class="btn btn-danger"
+                        context="{'save_first': True}"
                         groups="account.group_account_invoice"/>
             </xpath>
         </field>
@@ -32,7 +33,7 @@
 
                         <!-- Campos de account.move.invalidation relacionados -->
                         <field name="sit_fec_hor_Anula" options="{'no_open': True, 'no_create': True}"/>
-                        <field name="sit_codigoGeneracion_invalidacion" options="{'no_open': True, 'no_create': True}"/>
+                        <field name="hacienda_codigoGeneracion_anulacion" options="{'no_open': True, 'no_create': True}"/>
                         <field name="sit_codigoGeneracionR" options="{'no_open': True, 'no_create': True}"/>
                         <field name="sit_tipoAnulacion" options="{'no_open': True, 'no_create': True}"/>
                         <field name="sit_motivoAnulacion" options="{'no_open': True, 'no_create': True}"/>

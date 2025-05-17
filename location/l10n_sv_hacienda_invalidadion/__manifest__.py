@@ -28,6 +28,7 @@
     # always loaded
     'data': [
         "views/account_move_views.xml",
+        "security/ir.model.access.csv",
     ],
     # only loaded in demonstration mode
     "demo": [],

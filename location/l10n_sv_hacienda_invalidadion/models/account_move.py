@@ -21,9 +21,10 @@ import requests
 import logging
 import sys
 import traceback
-from datetime import datetime, timedelta  # Importando directamente las funciones/clases
+from datetime import datetime, timedelta, time  # Importando directamente las funciones/clases
 import pytz
 # from datetime import datetime
+from pytz import timezone, UTC
 
 _logger = logging.getLogger(__name__)
 
@@ -137,190 +138,84 @@ class AccountMove(models.Model):
 #---------------------------------------------------------------------------------------------
 # ANULAR FACTURA
 #---------------------------------------------------------------------------------------------
-    def button_anulacion(self):
-        for rec in self:
-            _logger.info("⚠️ Botón de anulación presionado para: %s", rec.name)
-            raise UserError("Simulación: Esta sería la lógica de anulación.")
+    def action_button_anulacion(self):
+        _logger.info("SIT [INICIO] action_button_anulacion para facturas: %s", self.ids)
+        # Verificamos si estamos en una factura que puede ser anulada
+        if self.state != 'posted':
+            raise UserError("Solo se pueden anular facturas que ya han sido publicadas.")
 
-    def button_anul(self):
-        '''Generamos la Anulación de la Factura
-    '''
-
-
-
-        # MENSAJE="SIT Respuesta = button_anul" 
-        # raise UserError(_(MENSAJE))
-
-    
-        # NUMERO_FACTURA= super(AccountMove, self).action_post()
-        # _logger.info("SIT NUMERO FACTURA =%s", NUMERO_FACTURA)
         for invoice in self:
-        
-            # ... tu código existente ...
+            # Primero creamos el registro en account.move.invalidation
+            _logger.info("SIT Creando el registro de invalidación para la factura: %s", invoice.name)
 
-            # Obtener el tipo de documento
-            sit_tipo_documento = invoice.journal_id.sit_tipo_documento.codigo
+            # Convertir la fecha manual a UTC si está definida
+            anulacion_fecha = invoice.sit_fec_hor_Anula
+            _logger.info("SIT Fecha de anulación seleccionada desde la interfaz: %s", anulacion_fecha)
 
-            #Agregar fecha anulacion
-            fecha_actual = (datetime.now() - timedelta(hours=6)).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + '-06:00'
-            fhProcesamiento = datetime.fromisoformat(fecha_actual)
-            # Opcional: convertirlo a hora local si Hacienda lo da en UTC
-            tz_sv = pytz.timezone('America/El_Salvador')
-            fhProcesamiento = fhProcesamiento.astimezone(tz_sv)
+            if anulacion_fecha:
+                # Si la hora es 00:00:00 (viene desde interfaz solo con fecha), le agregamos la hora actual
+                if anulacion_fecha.time() == time(0, 0, 0):
+                    ahora = datetime.now().time()
+                    anulacion_fecha = datetime.combine(anulacion_fecha.date(), ahora)
+                _logger.info("SIT Fecha ajustada con hora actual: %s", anulacion_fecha)
 
-            # Quitar zona horaria si el campo en Odoo es naive (sin tzinfo)
-            fhProcesamiento = fhProcesamiento.replace(tzinfo=None)
+                user_tz_str = self.env.user.tz or 'UTC'
+                user_tz = timezone(user_tz_str)
 
-            # Guardar en el campo correcto
-            self.sit_fec_hor_Anula = fhProcesamiento
-            _logger.info("SIT fecha anulacion: =%s", self.sit_fec_hor_Anula)
+                # Forzar anulacion_fecha a no tener tzinfo
+                anulacion_fecha = anulacion_fecha.replace(tzinfo=None)
+                # Localizar en zona horaria del usuario
+                local_dt = user_tz.localize(anulacion_fecha)
 
-            # Si el tipo de documento no es 01 ni 11, verificar la fecha de facturación
-            if sit_tipo_documento not in ['01', '11']:
-                fecha_facturacion_hacienda=None
-                if fecha_facturacion_hacienda:
-                    # Convertir la fecha_facturacion_hacienda a objeto datetime
-                    fecha_factura_dt = datetime.strptime(fecha_facturacion_hacienda, '%d/%m/%Y %H:%M:%S')
+                # Convertir a UTC
+                utc_dt = local_dt.astimezone(UTC).replace(tzinfo=None)
+                _logger.info("SIT Fecha convertida de %s (%s) a UTC: %s", anulacion_fecha, user_tz_str, utc_dt)
 
-                    # Convertir la fecha de factura a UTC si es necesario
-                    # Aquí asumimos que la fecha está en una zona horaria específica, ajustar según sea necesario
-                    zona_horaria_factura = pytz.timezone("America/El_Salvador") # Por ejemplo 'America/El_Salvador'
-                    fecha_factura_utc = zona_horaria_factura.localize(fecha_factura_dt).astimezone(pytz.utc)
+                _logger.info("SIT Fecha convertida a UTC: %s (zona de usuario: %s)", utc_dt, user_tz_str)
+            else:
+                utc_dt = fields.Datetime.now()  # Fallback
+                _logger.warning("SIT No se ingresó fecha de anulación, usando fecha/hora actual en UTC: %s", utc_dt)
 
-                    # Obtener la hora actual en UTC
-                    now_utc = datetime.now(pytz.utc)
+            try:
+                # Buscar si ya existe el registro de invalidación
+                existing = self.env['account.move.invalidation'].search([
+                    ('sit_factura_a_reemplazar', '=', invoice.id)
+                ], limit=1)
 
-                    # Calcular la diferencia en horas
-                    time_diff = now_utc - fecha_factura_utc
+                # Crear el registro de invalidación
+                invalidation = {
+                    'sit_factura_a_reemplazar': invoice.id,  # Factura que estamos anulando
+                    'sit_fec_hor_Anula': utc_dt,  # Fecha de anulación
+                    'sit_codigoGeneracionR': invoice.sit_codigoGeneracionR,
+                    'sit_tipoAnulacion': invoice.sit_tipoAnulacion or '1',  # Tipo de anulación
+                    'sit_motivoAnulacion': invoice.sit_motivoAnulacion or 'Error en la información',
+                }
 
-                    invoice.write({
-                        'sit_fec_hor_Anula': fhProcesamiento,
-                    })
+                _logger.info("SIT Diccionario para crear invalidación: %s", invalidation)
 
-                    if time_diff.total_seconds() > 24 * 3600:
-                        raise UserError(_("La anulación no puede realizarse. La factura tiene más de 24 horas."))
-        if not self.hacienda_estado_anulacion:
-            if invoice.move_type != 'entry':
-                type_report = invoice.journal_id.type_report
-                sit_tipo_documento = invoice.journal_id.sit_tipo_documento.codigo
-                
-                _logger.info("SIT action_post type_report  = %s", type_report)
-                _logger.info("SIT action_post sit_tipo_documento  = %s", sit_tipo_documento)
-                # _logger.info("SIT action_post sit_tipo_documento  = %s", sit_tipo_documento.codigo)
-                validation_type = self._compute_validation_type_2()
-                _logger.info("SIT action_post validation_type = %s", validation_type)
-               
-               
-                ambiente = "00"
-                if validation_type == 'homologation':
-                    ambiente = "00"
-                    _logger.info("SIT Factura de Prueba")
-                elif validation_type == 'production':
-                    _logger.info("SIT Factura de Producción")
-                    ambiente = "01"
-                # Firmado de documento
-                payload = invoice.obtener_payload_anulacion(validation_type, sit_tipo_documento)
-                documento_firmado = ""
-                payload_original = payload
-                _logger.info("SIT payload_original = %s ", str((payload_original)) ) 
-                self.check_parametros_invalidacion()
-                #Verificar si se tiene el sello de hacienda.
-                if  invoice.hacienda_selloRecibido:
-                    documento_firmado = invoice.firmar_documento_anu(validation_type, payload)
-                    MENSAJE = "SIT Documento a invalidar " + str(payload)
+                if existing:
+                    _logger.info("SIT Registro existente encontrado: %s, actualizando", existing.id)
+                    existing.write(invalidation)
+                    invalidation = existing
                 else:
-                    MENSAJE="SIT Factura no contiene Sello de Hacienda por lo que no se puede anular"
-                    raise UserError(_(MENSAJE))                    
-                    if invoice.sit_documento_firmado:
-                        documento_firmado = invoice.sit_documento_firmado
-                        _logger.info("SIT documento_firmado recuperado = %s ", type((documento_firmado)) ) 
-                    else:
-                        MENSAJE="SIT Respuesta = Documento en Contingencia, pero aún no ha sido firmado"
-                        raise UserError(_(MENSAJE))
-                # _logger.info("SIT documento_firmado recuperado ---------------------------> = %s ", (documento_firmado)) 
-                    
-                if documento_firmado:
-                    _logger.info("SIT Firmado de documento")
-                    _logger.info("SIT Generando DTE")
-                    #Obtiene el payload DTE
-                    invoice.sit_documento_firmado_invalidacion = str(documento_firmado)                    
-                    payload_dte = invoice.sit_obtener_payload_anulacion_dte_info(ambiente, documento_firmado)
-                    MENSAJE = "SIT documento a invalidar firmado = " + str(payload_dte)
-                    # raise UserError(_(MENSAJE))                    
-                    self.check_parametros_dte_invalidacion(payload_dte)
-                    Resultado = invoice.generar_dte_invalidacion(validation_type, payload_dte, payload_original)
-                    
-                    #from datetime import datetime, timedelta
-                    #import pytz
-                    import re
+                    # invalidation.update({'sit_factura_a_reemplazar': invoice.id})
+                    invalidation = self.env['account.move.invalidation'].create(invalidation)
+                    _logger.info("SIT Registro de invalidación creado con ID: %s", invalidation.id)
+                    self.env.cr.commit()
 
-                    if Resultado:
-                        dat_time = Resultado['fhProcesamiento']
-                        _logger.info("SIT Fecha de procesamiento original: %s", dat_time)
+                # Continuar con el flujo para ambos casos
+                invoice.write({'state': 'cancel'})
+                _logger.info("SIT Estado de factura actualizado a cancelado: %s", invoice.name)
 
-                        if re.match(r'\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2}', dat_time):
-                            dat_time = datetime.strptime(dat_time, '%d/%m/%Y %H:%M:%S')
-                            dat_time = dat_time.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + '-06:00'
-                        elif re.match(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}-\d{4}', dat_time):
-                            dat_time = dat_time[:-2] + ':' + dat_time[-2:]
-                        else:
-                            pass
+                invalidation.button_anul()
+                _logger.info("SIT Método button_anul ejecutado correctamente para ID: %s", invalidation.id)
 
-                        _logger.info("SIT Fecha de procesamiento corregida: %s", dat_time)
+            except Exception as e:
+                _logger.exception("SIT Error posterior al crear la invalidación: %s", e)
+                raise UserError(
+                    "La anulación fue registrada, pero ocurrió un error al completar el proceso. Contacta al administrador.")
 
-                        fhProcesamiento = datetime.fromisoformat(dat_time)
-                        fhProcesamiento = fhProcesamiento.replace(tzinfo=None)
-                        fhProcesamiento += timedelta(hours=6)
-
-                        _logger.info("SIT Fecha de procesamiento (%s)%s", type(fhProcesamiento), fhProcesamiento)
-
-                        MENSAJE="SIT Respuesta = " + str(Resultado)
-                        invoice.hacienda_estado_anulacion = Resultado['estado']
-                        invoice.hacienda_codigoGeneracion_anulacion = Resultado['codigoGeneracion']
-                        invoice.hacienda_selloRecibido_anulacion = Resultado['selloRecibido']
-                        invoice.hacienda_fhProcesamiento_anulacion = fhProcesamiento
-
-                        invoice.hacienda_codigoMsg_anulacion = Resultado['codigoMsg']
-                        invoice.hacienda_descripcionMsg_anulacion = Resultado['descripcionMsg']
-                        invoice.hacienda_observaciones_anulacion = str(Resultado['observaciones'])
-
-                        codigo_qr = invoice._generar_qr(ambiente, Resultado['codigoGeneracion'], invoice.fecha_facturacion_hacienda )
-                        invoice.sit_qr_hacienda_anulacion = codigo_qr
-                        _logger.info("SIT Factura creada correctamente =%s", MENSAJE)
-                        _logger.info("SIT Factura creada correctamente state =%s", invoice.state)
-                        payload_original['dteJson']['firmaElectronica'] = documento_firmado
-                        payload_original['dteJson']['selloRecibido'] = Resultado['selloRecibido']
-                        _logger.info("SIT Factura creada correctamente payload_original =%s",   str(json.dumps(payload_original)))  
-
-                        invoice.sit_json_respuesta = str(json.dumps(payload_original['dteJson']))
-                        json_str = json.dumps(payload_original['dteJson'])
-                        # Codifica la cadena JSON en formato base64
-                        json_base64 = base64.b64encode(json_str.encode('utf-8'))
-
-                        file_name ='Invalidacion '+ invoice.name.replace('/', '_') + '.json'
-                        _logger.info("SIT file_name =%s", file_name)
-                        _logger.info("SIT self._name =%s", self._name)
-                        _logger.info("SIT invoice.id =%s", invoice.id)
-                        invoice.env['ir.attachment'].sudo().create(
-                            {
-                                'name': file_name,
-                                # 'datas': json_response['factura_xml'],
-                                # 'datas': json.dumps(payload_original),
-                                'datas': json_base64,
-                                # 'datas_fname': file_name,
-                                'res_model': self._name,
-                                'res_id': invoice.id,
-                                # 'type': 'binary'
-                                'mimetype': 'application/json'
-                            })
-                        _logger.info("SIT json creado........................")
-
-                        invoice.state = "draft"
-                        self.write({'auto_post': 'no', 'state': 'annulment'})
-
-                else:
-                    _logger.info("SIT  Documento no firmado")    
-                    raise UserError(_('SIT Documento NO Firmado'))
+        return True
 
     def _compute_validation_type_2(self):
         for rec in self:
@@ -652,6 +547,7 @@ class AccountMove(models.Model):
             # Validaciones completas para DTE tipo 03
             if not self.partner_id.vat and self.partner_id.is_company:
                 _logger.info("SIT, es compañia se requiere NIT")
+                _logger.info("SIT, partner campos requeridos account=%s", self.partner_id)
                 raise UserError(_('El receptor no tiene NIT configurado.'))
             if not self.partner_id.nrc and self.partner_id.is_company:
                 _logger.info("SIT, es compañia se requiere NRC")
