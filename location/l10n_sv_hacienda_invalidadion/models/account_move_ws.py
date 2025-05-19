@@ -80,6 +80,7 @@ class AccountMove(models.Model):
                      invoice_info["fecAnula"], invoice_info["horAnula"])
         return invoice_info
 
+
     def sit_invalidacion_base_map_invoice_info_emisor(self):
         _logger.info("SIT [INICIO] Emisor: self.id=%s", self.id)
 
@@ -101,6 +102,8 @@ class AccountMove(models.Model):
         _logger.info("SIT Emisor: %s", invoice_info)
         return invoice_info
 
+    tz_el_salvador = pytz.timezone('America/El_Salvador')
+
     def sit_invalidacion_base_map_invoice_info_documento(self):
         _logger.info("SIT [INICIO] Documento: self.id=%s", self.id)
 
@@ -109,9 +112,10 @@ class AccountMove(models.Model):
             "codigoGeneracion": self.hacienda_codigoGeneracion_identificacion,
             "selloRecibido": self.hacienda_selloRecibido,
             "numeroControl": self.name,
-            "montoIva": round(self.amount_total, 2 ) #None
+            "montoIva": round(self.amount_total, 2),
         }
 
+<<<<<<< Updated upstream
         fecha_facturacion = (datetime.strptime(self.fecha_facturacion_hacienda, '%Y-%m-%d')
                              if isinstance(self.fecha_facturacion_hacienda, str)
                              else self.fecha_facturacion_hacienda)
@@ -127,8 +131,44 @@ class AccountMove(models.Model):
             nit = self.partner_id.dui.replace("-", "") if isinstance(self.partner_id.dui,str) and self.partner_id.dui.strip() else None
         else:
             nit = self.partner_id.fax.replace("-", "") if isinstance(self.partner_id.fax,str) and self.partner_id.fax.strip() else None
+=======
+        # --- Manejo seguro de fecha de facturación Hacienda ---
+        raw_date = self.fecha_facturacion_hacienda
+        if not raw_date:
+            # Si no hay fecha (draft), usamos ahora en El Salvador
+            FechaEmi = datetime.now(tz_el_salvador)
+        elif isinstance(raw_date, str):
+            # Intentamos parsearla
+            try:
+                # ISO o con zona
+                FechaEmi = datetime.fromisoformat(raw_date)
+            except ValueError:
+                FechaEmi = datetime.strptime(raw_date, '%Y-%m-%d %H:%M:%S')
+            # Aseguramos tz
+            if FechaEmi.tzinfo is None:
+                FechaEmi = tz_el_salvador.localize(FechaEmi)
+        else:
+            # Ya es datetime
+            FechaEmi = raw_date
+            if FechaEmi.tzinfo is None:
+                FechaEmi = tz_el_salvador.localize(FechaEmi)
+
+        # Ajuste a UTC-6 según spec
+        adjusted = FechaEmi - timedelta(hours=6)
+        invoice_info["fecEmi"] = adjusted.strftime('%Y-%m-%d')
+
+        invoice_info["codigoGeneracionR"] = None  # ó self.sit_codigoGeneracionR
+
+        # Datos del receptor
+        dui = self.partner_id.dui or ''
+        nit = dui.replace("-", "") if isinstance(dui, str) else None
+>>>>>>> Stashed changes
         invoice_info["numDocumento"] = nit
-        invoice_info["tipoDocumento"] = self.partner_id.l10n_latam_identification_type_id.codigo if nit and self.partner_id.l10n_latam_identification_type_id else None
+        invoice_info["tipoDocumento"] = (
+            self.partner_id.l10n_latam_identification_type_id.codigo
+            if nit and self.partner_id.l10n_latam_identification_type_id
+            else None
+        )
         invoice_info["nombre"] = self.partner_id.name or None
         invoice_info["telefono"] = self.partner_id.phone or None
         invoice_info["correo"] = self.partner_id.email or None

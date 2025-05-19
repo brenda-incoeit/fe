@@ -90,8 +90,8 @@ class AccountMove(models.Model):
             invoice_info["numeroControl"] = self.name
         _logger.info("SIT sit_fex_base_map_invoice_info_identificacion0 = %s", invoice_info)
         invoice_info["codigoGeneracion"] = self.sit_generar_uuid()          #  company_id.sit_uuid.upper()
-        invoice_info["tipoModelo"] = int(self.sit_modelo_facturacion)
-        invoice_info["tipoOperacion"] = int(self.sit_tipo_transmision)
+        invoice_info["tipoModelo"] = int(self.journal_id.sit_modelo_facturacion)
+        invoice_info["tipoOperacion"] = int(self.journal_id.sit_tipo_transmision)
         invoice_info["tipoContingencia"] = None
         invoice_info["motivoContigencia"] = None
         _logger.info("SIT sit_fex_base_map_invoice_info_identificacion0 = %s", invoice_info)
@@ -151,22 +151,31 @@ class AccountMove(models.Model):
         invoice_info["recintoFiscal"] =  '99'
         invoice_info["regimen"] =  'EX1.1000.000'
 
-        return invoice_info   
+        return invoice_info
 
     def sit__fex_base_map_invoice_info_receptor(self):
         _logger.info("SIT sit_base_map_invoice_info_receptor self = %s", self)
-        
+
         invoice_info = {}
-         # Número de Documento (Nit)
-        nit = self.partner_id.vat.replace("-", "") if self.partner_id.vat and isinstance(self.partner_id.vat, str) else None
-        invoice_info["numDocumento"] = nit
+        #  # Número de Documento (Nit)
+        # nit = self.partner_id.dui.replace("-", "") if self.partner_id.vat and isinstance(self.partner_id.vat, str) else None
+        # invoice_info["numDocumento"] = nit
+
+        nit = self.partner_id.fax
+        _logger.info("SIT Documento receptor = %s", self.partner_id.dui)
+        if isinstance(nit, str):
+            #nit = nit.replace("-", "")
+            invoice_info["numDocumento"] = nit
 
         # Establece 'tipoDocumento' como None si 'nit' es None
         tipoDocumento = self.partner_id.l10n_latam_identification_type_id.codigo if self.partner_id.l10n_latam_identification_type_id and nit else None
         invoice_info["tipoDocumento"] = tipoDocumento
         invoice_info["nombre"] = self.partner_id.name
-        invoice_info["codPais"] = '9483'
-        invoice_info["nombrePais"] = 'Guatemala'        
+        if self.partner_id.country_id:
+            invoice_info["codPais"] = self.partner_id.country_id.code
+        else:
+            invoice_info["codPais"] = None
+        invoice_info["nombrePais"] = self.partner_id.country_id.name
         if self.partner_id.company_type == 'person':
             tipoPersona = 1
         elif self.partner_id.company_type == 'company':
@@ -177,7 +186,7 @@ class AccountMove(models.Model):
         else:
             invoice_info["nombreComercial"] = None
         descActividad = self.partner_id.codActividad.valores if self.partner_id.codActividad and hasattr(self.partner_id.codActividad, 'valores') else None
-        invoice_info["descActividad"] = descActividad    
+        invoice_info["descActividad"] = descActividad
         invoice_info["complemento"] =  self.partner_id.street
         if self.partner_id.phone:
             invoice_info["telefono"] =  self.partner_id.phone
@@ -186,8 +195,8 @@ class AccountMove(models.Model):
         if self.partner_id.email:
             invoice_info["correo"] =  self.partner_id.email
         else:
-            invoice_info["correo"] = None    
-        return invoice_info        
+            invoice_info["correo"] = None
+        return invoice_info
 
     def sit_fex_base_map_invoice_info_cuerpo_documento(self):
         _logger.info("SIT sit_base_map_invoice_info_cuerpo_documento self = %s", self)
