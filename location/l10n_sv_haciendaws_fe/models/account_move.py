@@ -320,13 +320,13 @@ class AccountMove(models.Model):
                 }
                 if (
                     len(rec.commercial_partner_id.l10n_latam_identification_type_id)
-                    and rec.commercial_partner_id.vat
+                    and rec.commercial_partner_id.fax
                 ):
                     qr_dict["tipoDocRec"] = int(
                         rec.commercial_partner_id.l10n_latam_identification_type_id.l10n_ar_afip_code
                     )
                     qr_dict["nroDocRec"] = int(
-                        rec.commercial_partner_id.vat.replace("-", "").replace(".", "")
+                        rec.commercial_partner_id.fax.replace("-", "").replace(".", "")
                     )
                 qr_data = base64.encodestring(
                     json.dumps(qr_dict, indent=None).encode("ascii")
@@ -498,14 +498,14 @@ class AccountMove(models.Model):
                     if not invoice.partner_id.parent_id:
                         if not invoice.partner_id.nrc:
                             invoice.msg_error("N.R.C.")
-                        if not invoice.partner_id.vat and not invoice.partner_id.dui:
+                        if not invoice.partner_id.fax and not invoice.partner_id.dui:
                             invoice.msg_error("N.I.T O D.U.I.")
                         if not invoice.partner_id.codActividad:
                             invoice.msg_error("Giro o Actividad Económica")
                     else:
                         if not invoice.partner_id.parent_id.nrc:
                             invoice.msg_error("N.R.C.")
-                        if not invoice.partner_id.parent_id.vat and not invoice.partner_id.parent_id.dui:
+                        if not invoice.partner_id.parent_id.fax and not invoice.partner_id.parent_id.dui:
                             invoice.msg_error("N.I.T O D.U.I.")
                         if not invoice.partner_id.parent_id.codActividad:
                             invoice.msg_error("Giro o Actividad Económica")
@@ -911,7 +911,7 @@ class AccountMove(models.Model):
                 raise UserError(_('El receptor no tiene NOMBRE configurado para facturas tipo 01.'))
         elif tipo_dte == '03':
             # Validaciones completas para DTE tipo 03
-            if not self.partner_id.vat and self.partner_id.is_company:
+            if not self.partner_id.fax and self.partner_id.is_company:
                 _logger.info("SIT, es compañia se requiere NIT")
                 raise UserError(_('El receptor no tiene NIT configurado.'))
             if not self.partner_id.nrc and self.partner_id.is_company:

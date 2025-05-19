@@ -15,6 +15,7 @@ _logger = logging.getLogger(__name__)
 
 # Zona horaria El Salvador
 tz_el_salvador = pytz.timezone('America/El_Salvador')
+COD_FE = "01"
 
 class AccountMove(models.Model):
     _inherit = "account.move"
@@ -22,10 +23,10 @@ class AccountMove(models.Model):
     ######################################### F-ANULACION
 
     def sit_anulacion_base_map_invoice_info(self):
-        _logger.info("SIT [INICIO] sit_anulacion_base_map_invoice_info: self.id=%s", self.id)
+        _logger.info("SIT [INICIO] sit_anulacion_base_map_invoice_info: self.id=%s, sel.factura_reemplazar=%s", self.id, self.sit_factura_a_reemplazar.company_id)
 
         invoice_info = {}
-        nit = self.company_id.vat.replace("-", "")
+        nit = self.sit_factura_a_reemplazar.company_id.vat.replace("-", "")
         invoice_info["nit"] = nit
         invoice_info["activo"] = True
         invoice_info["passwordPri"] = self.company_id.sit_passwordPri
@@ -65,7 +66,7 @@ class AccountMove(models.Model):
         fecha_actual = datetime.datetime.now(pytz.timezone("America/El_Salvador"))
         _logger.info("Fecha en sesion 1: %s", fecha_actual)
         if self.sit_fec_hor_Anula:
-            FechaHoraAnulacion = self.sit_fec_hor_Anula
+            FechaHoraAnulacion = fecha_actual#self.sit_fec_hor_Anula
             _logger.info("SIT campo fecha anulacion: =%s", FechaHoraAnulacion)
         else:
             FechaHoraAnulacion = fecha_actual#datetime.now() - timedelta(hours=6)
@@ -116,9 +117,16 @@ class AccountMove(models.Model):
                              else self.fecha_facturacion_hacienda)
         adjusted_fecha = fecha_facturacion - timedelta(hours=6)
         invoice_info["fecEmi"] = adjusted_fecha.strftime('%Y-%m-%d')
-        invoice_info["codigoGeneracionR"] = None#self.sit_codigoGeneracionR or None
+        _logger.info("SIT Codigo generacion R: self.id=%s", self.sit_codigoGeneracionR)
+        if self.sit_tipoAnulacion == '2':
+            self.sit_codigoGeneracionR = None
 
-        nit = self.partner_id.dui.replace("-", "") if isinstance(self.partner_id.dui, str) and self.partner_id.dui.strip() else None
+        invoice_info["codigoGeneracionR"] = self.sit_codigoGeneracionR or None
+
+        if self.journal_id.sit_tipo_documento.codigo == COD_FE:
+            nit = self.partner_id.dui.replace("-", "") if isinstance(self.partner_id.dui,str) and self.partner_id.dui.strip() else None
+        else:
+            nit = self.partner_id.fax.replace("-", "") if isinstance(self.partner_id.fax,str) and self.partner_id.fax.strip() else None
         invoice_info["numDocumento"] = nit
         invoice_info["tipoDocumento"] = self.partner_id.l10n_latam_identification_type_id.codigo if nit and self.partner_id.l10n_latam_identification_type_id else None
         invoice_info["nombre"] = self.partner_id.name or None
@@ -132,7 +140,10 @@ class AccountMove(models.Model):
         _logger.info("SIT [INICIO] Motivo anulación: self.id=%s", self.id)
 
         _logger.info("SIT Empresa-Receptor: self.id=%s", self.partner_id)
-        dui = self.partner_id.dui
+        if self.journal_id.sit_tipo_documento.codigo == COD_FE:
+            dui = self.partner_id.dui
+        else:
+            dui = self.partner_id.fax
         if not dui:
             raise UserError(
                 _("No se encontró el DUI del responsable en la empresa. Por favor verifique el campo DUI en el partner de la compañía."))
