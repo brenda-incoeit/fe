@@ -21,9 +21,6 @@ tz_el_salvador = pytz.timezone('America/El_Salvador')
 class sit_AccountContingencia(models.Model):
     _inherit = "account.contingencia1"
 
-
-
-
 ######################################################################################################### FCE-CONTINGENCIA
     def sit__contingencia_base_map_invoice_info(self):
         _logger.info("SIT CONTINGENCIA sit__contingencia_base_map_invoice_info self = %s", self)

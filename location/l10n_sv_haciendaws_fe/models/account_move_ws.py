@@ -4,6 +4,7 @@
 ##############################################################################
 from typing import Any
 
+import pytz
 from odoo import fields, models, api, _
 from odoo.exceptions import UserError
 from datetime import datetime, timezone
@@ -879,8 +880,8 @@ class AccountMove(models.Model):
             FechaEmi = self.fecha_facturacion_hacienda
             _logger.info("Fecha bd: ", FechaEmi)
         else:
-            #FechaEmi = datetime.datetime.now(ZoneInfo("America/El_Salvador"))
-            FechaEmi = fecha_actual
+            salvador_tz = pytz.timezone("America/El_Salvador")
+            FechaEmi = datetime.datetime.now(salvador_tz)
             _logger.info("Fecha en sesion: %s", FechaEmi)
         _logger.info("SIT FechaEmi = %s (%s)", FechaEmi, type(FechaEmi))
         invoice_info["fecEmi"] = FechaEmi.strftime('%Y-%m-%d')
@@ -1102,3 +1103,256 @@ class AccountMove(models.Model):
         lines_temp['fechaEmision'] = self.inv_refund_id.invoice_date
         lines.append(lines_temp)
         return lines
+
+
+    ##################################### NOTA DE DEBITO
+
+    def sit_base_map_invoice_info_ndd(self):
+        """Envoltorio principal para Nota de Débito (DTE tipo 05)."""
+        _logger.info("SIT sit_base_map_invoice_info_ndd self = %s", self)
+        invoice_info = {
+            'nit': (self.company_id.vat or '').replace('-', ''),
+            'activo': True,
+            'passwordPri': self.company_id.sit_passwordPri,
+            'dteJson': self.sit_base_map_invoice_info_ndd_dtejson(),
+        }
+        return invoice_info
+
+    def sit_base_map_invoice_info_ndd_dtejson(self):
+        """Construye el JSON interno para la Nota de Débito."""
+        _logger.info("SIT sit_base_map_invoice_info_ndd_dtejson self = %s", self)
+        invoice_info = {}
+        # 1) Identificación
+        invoice_info['identificacion']      = self.sit_ndd_base_map_invoice_info_identificacion()
+        # 2) Documento relacionado
+        invoice_info['documentoRelacionado'] = self.sit__ndd_relacionado()
+        # 3) Emisor (reutiliza tu método de NDC)
+        invoice_info['emisor']              = self.sit__ndc_base_map_invoice_info_emisor()
+        # 4) Receptor (misma lógica que CCF)
+        invoice_info['receptor']            = self.sit__ccf_base_map_invoice_info_receptor()
+        invoice_info['ventaTercero']        = None
+        # 5) Cuerpo del documento: reusa tu método de NDC
+        cuerpo, tributo, totalGravada, tax_ids, totalIva = self.sit_base_map_invoice_info_cuerpo_documento_ndc()
+        invoice_info['cuerpoDocumento']     = cuerpo
+        if cuerpo is None:
+            raise UserError(_("La Nota de Débito no tiene líneas de productos válidas."))
+        # 6) Resumen: reusa tu método de NDC
+        invoice_info['resumen']             = self.sit_ndd_base_map_invoice_info_resumen(
+                                                tributo, totalGravada, totalIva,
+                                                invoice_info['identificacion']
+                                            )
+        # 7) Extensión: reusa tu método de NDC
+        invoice_info['extension']           = self.sit_base_map_invoice_info_extension_ndc()
+        invoice_info['apendice']            = None
+        return invoice_info
+
+    def sit_base_map_invoice_info_cuerpo_documento_ndd(self):
+        lines = []
+        item_numItem = 0
+        total_Gravada = 0.0
+        totalIva = 0.0
+        codigo_tributo = None  # Inicializamos la variable para asegurarnos de que tiene un valor predeterminado.
+        tax_ids_list = []  # Creamos una lista para almacenar los tax_ids.
+
+        _logger.info("Iniciando el mapeo de la información del documento NDD = %s", self.invoice_line_ids)
+
+        for line in self.invoice_line_ids:
+            item_numItem += 1
+            line_temp = {}
+            lines_tributes = []
+            line_temp["numItem"] = item_numItem
+            tipoItem = int(line.product_id.tipoItem.codigo or line.product_id.product_tmpl_id.tipoItem.codigo)
+            line_temp["tipoItem"] = tipoItem
+            _logger.debug(
+                f"Procesando línea de factura: {line.product_id.name}, tipoItem: {tipoItem}.")  # Log en cada línea.
+
+            if self.inv_refund_id:
+                line_temp["numeroDocumento"] = self.inv_refund_id.hacienda_codigoGeneracion_identificacion
+            else:
+                line_temp["numeroDocumento"] = None
+
+            line_temp["codigo"] = line.product_id.default_code
+            codTributo = line.product_id.tributos_hacienda_cuerpo.codigo
+            if codTributo == False:
+                line_temp["codTributo"] = None
+            else:
+                line_temp["codTributo"] = codTributo
+
+            line_temp["descripcion"] = line.name
+            line_temp["cantidad"] = line.quantity
+            if not line.product_id.uom_hacienda:
+                uniMedida = 7
+                _logger.error(f"UOM no configurado para el producto: {line.product_id.name}.")  # Log de error
+                raise UserError(_("UOM de producto no configurado para:  %s" % (line.product_id.name)))
+            else:
+                uniMedida = int(line.product_id.uom_hacienda.codigo)
+
+            line_temp["uniMedida"] = int(uniMedida)
+            line_temp["precioUni"] = round(line.price_unit, 4)
+            line_temp["montoDescu"] = (
+                    round(line_temp["cantidad"] * (line.price_unit * (line.discount / 100)), 2) or 0.0)
+            line_temp["ventaNoSuj"] = 0.0
+            line_temp["ventaExenta"] = 0.0
+            ventaGravada = line_temp["cantidad"] * (line.price_unit * (line.discount / 100))
+            line_temp["ventaGravada"] = round(ventaGravada, 2)
+
+            _logger.debug(
+                f"Venta gravada: {ventaGravada}, cantidad: {line_temp['cantidad']}, precio unitario: {line.price_unit}.")  # Log sobre cálculos.
+
+            for line_tributo in line.tax_ids:
+                codigo_tributo_codigo = line_tributo.tributos_hacienda.codigo
+                codigo_tributo = line_tributo.tributos_hacienda  # Asignamos el valor de `codigo_tributo`
+                lines_tributes.append(codigo_tributo_codigo)
+
+            line_temp["tributos"] = lines_tributes
+            vat_taxes_amounts = line.tax_ids.compute_all(
+                line.price_unit,
+                self.currency_id,
+                line.quantity,
+                product=line.product_id,
+                partner=self.partner_id,
+            )
+            vat_taxes_amount = vat_taxes_amounts['taxes'][0]['amount']
+            sit_amount_base = round(vat_taxes_amounts['taxes'][0]['base'], 2)
+            price_unit_mas_iva = round(line.price_unit, 4)
+
+            if line_temp["cantidad"] > 0:
+                price_unit = round(sit_amount_base / line_temp["cantidad"], 4)
+            else:
+                price_unit = round(0.00, 4)
+
+            line_temp["precioUni"] = price_unit
+            ventaGravada = line_temp["cantidad"] * line_temp["precioUni"] - line_temp["montoDescu"]
+            total_Gravada += round(ventaGravada, 4)
+            line_temp["ventaGravada"] = round(ventaGravada, 4)
+
+            _logger.debug(f"Total gravada acumulado: {total_Gravada}.")  # Log del total gravado.
+
+            if ventaGravada == 0.0:
+                line_temp["tributos"] = None
+            else:
+                line_temp["tributos"] = lines_tributes
+
+            if tipoItem == 4:
+                line_temp["uniMedida"] = 99
+                line_temp["codTributo"] = codTributo
+                line_temp["tributos"] = [20]
+            else:
+                line_temp["codTributo"] = None
+                line_temp["tributos"] = lines_tributes
+
+            totalIva += vat_taxes_amount
+            lines.append(line_temp)
+            tax_ids_list.append(line.tax_ids)  # Almacenamos los tax_ids de la línea
+
+        _logger.info(
+            f"Proceso de mapeo finalizado. Total Gravada: {total_Gravada}, Total IVA: {totalIva}.")  # Log al finalizar la función.
+
+        return lines, codigo_tributo, total_Gravada, tax_ids_list, totalIva
+
+    def sit_ndd_base_map_invoice_info_resumen(self, tributo_hacienda, total_Gravada, totalIva, identificacion):
+        invoice_info = {}
+        tributos = {}
+        pagos = {}
+
+        _logger.info("SIT total gravado NC = %s", total_Gravada)
+
+        invoice_info["totalNoSuj"] = 0
+        invoice_info["totalExenta"] = 0
+        invoice_info["totalGravada"] = round(total_Gravada, 2 )
+        invoice_info["subTotalVentas"] = round (total_Gravada , 2 )
+        invoice_info["descuNoSuj"] = 0
+        invoice_info["descuExenta"] = 0
+        invoice_info["descuGravada"] = 0
+        invoice_info["totalDescu"] = 0
+        invoice_info["numPagoElectronico"] = None
+        if identificacion['tipoDte'] != "01":
+            if tributo_hacienda:
+                tributos["codigo"] = tributo_hacienda.codigo
+                tributos["descripcion"] = tributo_hacienda.valores
+                tributos["valor"] = round(self.amount_tax, 2 )
+            else:
+                tributos["codigo"] = None
+                tributos["descripcion"] = None
+                tributos["valor"] = None
+            _logger.info("========================AÑADIENDO TRIBUTO======================")
+            invoice_info["tributos"] = [tributos]
+        else:
+            invoice_info["tributos"] = None
+        invoice_info["subTotal"] = round(total_Gravada, 2 )             #     self.             amount_untaxed
+        invoice_info["ivaPerci1"] = 0.0
+        invoice_info["ivaRete1"] = 0
+        invoice_info["reteRenta"] = 0
+        invoice_info["montoTotalOperacion"] = round(self.amount_total, 2 )
+        invoice_info["totalLetras"] = self.amount_text
+        invoice_info["condicionOperacion"] = int(self.condiciones_pago)
+        pagos["codigo"] = self.forma_pago.codigo  # '01'   # CAT-017 Forma de Pago    01 = bienes
+        pagos["montoPago"] = round(self.amount_total, 2 )
+        pagos["referencia"] =  self.sit_referencia   # Un campo de texto llamado Referencia de pago
+        if invoice_info["totalGravada"] == 0.0:
+            invoice_info["ivaPerci1"] = 0.0
+            invoice_info["ivaRete1"] = 0.0
+        return invoice_info
+
+    def sit_ndd_base_map_invoice_info_identificacion(self):
+        """Cabecera de identificación para Nota de Débito (tipoDte = '05')."""
+        _logger.info("SIT sit_ndd_base_map_invoice_info_identificacion self = %s", self)
+        invoice_info = {
+            'version': 3,
+            'ambiente': None,
+            'tipoDte': self.journal_id.sit_tipo_documento.codigo,
+        }
+        # ambiente
+        validation_type = self._compute_validation_type_2()
+        param = self.env['ir.config_parameter'].sudo().get_param('afip.ws.env.type')
+        env = param or validation_type
+        invoice_info['ambiente'] = '00' if env == 'homologation' else '01'
+        # númeroControl
+        if self.name == '/':
+            tipo = invoice_info['tipoDte'] or '05'
+            est  = self.journal_id.sit_codestable or '0000'
+            corr = self.env['ir.sequence'].next_by_code('dte.secuencia') or '0'
+            corr = corr.zfill(15)
+            invoice_info['numeroControl'] = f"DTE-{tipo}-0000{est}-{corr}"
+        else:
+            invoice_info['numeroControl'] = self.name
+        # resto
+        invoice_info.update({
+            'codigoGeneracion': self.hacienda_codigoGeneracion_identificacion,
+            'tipoModelo': int(self.journal_id.sit_modelo_facturacion),
+            'tipoOperacion':int(self.journal_id.sit_tipo_transmision),
+            'tipoContingencia': int(self.sit_tipo_contingencia) if self.sit_tipo_contingencia else None,
+            'motivoContin':    self.sit_tipo_contingencia_otro or None,
+        })
+        # fecha/hora
+        if self.fecha_facturacion_hacienda:
+            FechaEmi = self.fecha_facturacion_hacienda
+        else:
+            tz = pytz.timezone('America/El_Salvador')
+            FechaEmi = datetime.datetime.now(tz)
+        invoice_info['fecEmi'] = FechaEmi.strftime('%Y-%m-%d')
+        invoice_info['horEmi'] = FechaEmi.strftime('%H:%M:%S')
+        invoice_info['tipoMoneda'] = self.currency_id.name
+        # ajustes según operación
+        if invoice_info['tipoOperacion'] == 1:
+            invoice_info['tipoModelo'] = 1
+            invoice_info['tipoContingencia'] = None
+            invoice_info['motivoContin'] = None
+        elif invoice_info['tipoOperacion'] == 2:
+            invoice_info['tipoModelo'] = 2
+        if invoice_info['tipoContingencia'] == 5:
+            invoice_info['motivoContin'] = invoice_info['motivoContin']
+        return invoice_info
+
+    def sit__ndd_relacionado(self):
+        """Referenciar la factura de origen para Nota de Débito."""
+        self.ensure_one()
+        if not self.debit_origin_id:
+            raise UserError(_("La Nota de Débito debe referenciar una factura existente."))
+        origin = self.debit_origin_id
+        return [{
+            'tipoDocumento':    origin.journal_id.sit_tipo_documento.codigo,
+            'tipoGeneracion':   2,
+            'numeroDocumento':  origin.hacienda_codigoGeneracion_identificacion,
+            'fechaEmision':     origin.invoice_date.strftime('%Y-%m-%d'),
+        }]

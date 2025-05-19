@@ -4,8 +4,9 @@
         <record id="view_facturas_contingencia_tree" model="ir.ui.view">
             <field name="name">view_facturas_contingencia.tree</field>
             <field name="model">account.contingencia1</field>
+            <field name="type">list</field>
             <field name="arch" type="xml">
-                <tree string="Facturas de contingencia"
+                <list string="Facturas de contingencia"
                       js_class="account_tree"
                       decoration-info="state == 'draft'"
                       decoration-muted="state == 'cancel'"
@@ -20,7 +21,7 @@
                         <field name="sit_fInicio_hInicio" invisible="0"/>
                         <field name="sit_fFin_hFin" invisible="0"/>
                         <field name="sit_facturas_relacionadas" invisible="0"/>
-                  </tree>
+                  </list>
             </field>
         </record>
         <record id="view_contingencia_form" model="ir.ui.view">
