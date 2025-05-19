@@ -116,6 +116,7 @@ class AccountMove(models.Model):
         }
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         fecha_facturacion = (datetime.strptime(self.fecha_facturacion_hacienda, '%Y-%m-%d')
                              if isinstance(self.fecha_facturacion_hacienda, str)
                              else self.fecha_facturacion_hacienda)
@@ -153,6 +154,29 @@ class AccountMove(models.Model):
             if FechaEmi.tzinfo is None:
                 FechaEmi = tz_el_salvador.localize(FechaEmi)
 
+=======
+        # --- Manejo seguro de fecha de facturación Hacienda ---
+        raw_date = self.fecha_facturacion_hacienda
+        if not raw_date:
+            # Si no hay fecha (draft), usamos ahora en El Salvador
+            FechaEmi = datetime.now(tz_el_salvador)
+        elif isinstance(raw_date, str):
+            # Intentamos parsearla
+            try:
+                # ISO o con zona
+                FechaEmi = datetime.fromisoformat(raw_date)
+            except ValueError:
+                FechaEmi = datetime.strptime(raw_date, '%Y-%m-%d %H:%M:%S')
+            # Aseguramos tz
+            if FechaEmi.tzinfo is None:
+                FechaEmi = tz_el_salvador.localize(FechaEmi)
+        else:
+            # Ya es datetime
+            FechaEmi = raw_date
+            if FechaEmi.tzinfo is None:
+                FechaEmi = tz_el_salvador.localize(FechaEmi)
+
+>>>>>>> Stashed changes
         # Ajuste a UTC-6 según spec
         adjusted = FechaEmi - timedelta(hours=6)
         invoice_info["fecEmi"] = adjusted.strftime('%Y-%m-%d')
@@ -162,6 +186,9 @@ class AccountMove(models.Model):
         # Datos del receptor
         dui = self.partner_id.dui or ''
         nit = dui.replace("-", "") if isinstance(dui, str) else None
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
         invoice_info["numDocumento"] = nit
         invoice_info["tipoDocumento"] = (

@@ -580,6 +580,7 @@ class AccountMove(models.Model):
                 _logger.info("SIT DTE generado en _post: %s", numero_control)
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
             # Si el tipo de documento requiere validación adicional, hacerlo aquí
             if invoice.journal_id.sit_tipo_documento:
                 type_report = invoice.journal_id.type_report
@@ -668,6 +669,11 @@ class AccountMove(models.Model):
                             'mimetype': 'application/json'
                         })
                         _logger.info("SIT JSON creado y adjuntado.")
+=======
+            # 2) Validar formato
+            if not invoice.name.startswith("DTE-"):
+                raise UserError(_("Número de control DTE inválido para la factura %s.") % invoice.id)
+>>>>>>> Stashed changes
 =======
             # 2) Validar formato
             if not invoice.name.startswith("DTE-"):
