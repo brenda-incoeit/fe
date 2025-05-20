@@ -1100,7 +1100,7 @@ class AccountMove(models.Model):
         invoice_date = self.inv_refund_id.invoice_date
         if invoice_date:
             new_date = invoice_date + timedelta(hours=20)
-        lines_temp['fechaEmision'] = self.inv_refund_id.invoice_date
+        lines_temp['fechaEmision'] = self.inv_refund_id.invoice_date.strftime('%Y-%m-%d') if self.inv_refund_id.invoice_date else None #self.inv_refund_id.invoice_date
         lines.append(lines_temp)
         return lines
 
