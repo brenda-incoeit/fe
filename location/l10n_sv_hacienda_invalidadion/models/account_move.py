@@ -135,7 +135,7 @@ class AccountMove(models.Model):
     def action_button_anulacion(self):
         _logger.info("SIT [INICIO] action_button_anulacion para facturas: %s", self.ids)
         # Verificamos si estamos en una factura que puede ser anulada
-        if self.state != 'posted':
+        if self.state != 'posted' and self.hacienda_estado !='PROCESADO':
             raise UserError("Solo se pueden anular facturas que ya han sido publicadas.")
 
         for invoice in self:

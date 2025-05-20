@@ -26,7 +26,12 @@ class AccountMove(models.Model):
         _logger.info("SIT [INICIO] sit_anulacion_base_map_invoice_info: self.id=%s, sel.factura_reemplazar=%s", self.id, self.sit_factura_a_reemplazar.company_id)
 
         invoice_info = {}
-        nit = self.sit_factura_a_reemplazar.company_id.vat.replace("-", "")
+        vat = self.sit_factura_a_reemplazar.company_id.vat
+        if isinstance(vat, str):
+            nit = vat.replace("-", "")
+        else:
+            nit = None
+
         invoice_info["nit"] = nit
         invoice_info["activo"] = True
         invoice_info["passwordPri"] = self.company_id.sit_passwordPri
@@ -115,12 +120,15 @@ class AccountMove(models.Model):
             "montoIva": round(self.amount_total, 2),
         }
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
         fecha_facturacion = (datetime.strptime(self.fecha_facturacion_hacienda, '%Y-%m-%d')
                              if isinstance(self.fecha_facturacion_hacienda, str)
                              else self.fecha_facturacion_hacienda)
-        adjusted_fecha = fecha_facturacion - timedelta(hours=6)
+
+        if isinstance(fecha_facturacion, datetime):
+            adjusted_fecha = fecha_facturacion - timedelta(hours=6)
+        else:
+            _logger.error("fecha_facturacion no es datetime, es: %s", type(fecha_facturacion))
+            raise ValueError("fecha_facturacion no es un datetime válido")
         invoice_info["fecEmi"] = adjusted_fecha.strftime('%Y-%m-%d')
         _logger.info("SIT Codigo generacion R: self.id=%s", self.sit_codigoGeneracionR)
         if self.sit_tipoAnulacion == '2':
@@ -132,7 +140,7 @@ class AccountMove(models.Model):
             nit = self.partner_id.dui.replace("-", "") if isinstance(self.partner_id.dui,str) and self.partner_id.dui.strip() else None
         else:
             nit = self.partner_id.fax.replace("-", "") if isinstance(self.partner_id.fax,str) and self.partner_id.fax.strip() else None
-=======
+
         # --- Manejo seguro de fecha de facturación Hacienda ---
         raw_date = self.fecha_facturacion_hacienda
         if not raw_date:
@@ -154,7 +162,6 @@ class AccountMove(models.Model):
             if FechaEmi.tzinfo is None:
                 FechaEmi = tz_el_salvador.localize(FechaEmi)
 
-=======
         # --- Manejo seguro de fecha de facturación Hacienda ---
         raw_date = self.fecha_facturacion_hacienda
         if not raw_date:
@@ -176,7 +183,6 @@ class AccountMove(models.Model):
             if FechaEmi.tzinfo is None:
                 FechaEmi = tz_el_salvador.localize(FechaEmi)
 
->>>>>>> Stashed changes
         # Ajuste a UTC-6 según spec
         adjusted = FechaEmi - timedelta(hours=6)
         invoice_info["fecEmi"] = adjusted.strftime('%Y-%m-%d')
@@ -186,10 +192,13 @@ class AccountMove(models.Model):
         # Datos del receptor
         dui = self.partner_id.dui or ''
         nit = dui.replace("-", "") if isinstance(dui, str) else None
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
+
+        if dui:
+            nit = dui.replace("-", "")
+        else:
+            nit_partner = self.partner_id.fax or ''
+            nit = nit_partner.replace("-", "") if isinstance(nit_partner, str) else ''
+
         invoice_info["numDocumento"] = nit
         invoice_info["tipoDocumento"] = (
             self.partner_id.l10n_latam_identification_type_id.codigo

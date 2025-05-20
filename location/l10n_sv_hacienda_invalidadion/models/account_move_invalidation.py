@@ -544,6 +544,7 @@ class AccountMoveInvalidation(models.Model):
         new_img.save(buffer, format="PNG")
         qrCode = base64.b64encode(buffer.getvalue())
         # self.sit_qr_hacienda = qrCode
+        _logger.info("SIT Qr Fin")
         return qrCode
 
     def generar_qr(self):

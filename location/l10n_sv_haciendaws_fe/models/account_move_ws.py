@@ -116,7 +116,7 @@ class AccountMove(models.Model):
 
         # ——————————————————————
         # UUID, modelo, operación
-        invoice_info["codigoGeneracion"] = self.sit_generar_uuid()
+        invoice_info["codigoGeneracion"] = self.hacienda_codigoGeneracion_identificacion #self.sit_generar_uuid()
         invoice_info["tipoModelo"] = int(self.journal_id.sit_modelo_facturacion)
         invoice_info["tipoOperacion"] = int(self.journal_id.sit_tipo_transmision)
 
@@ -496,7 +496,7 @@ class AccountMove(models.Model):
             invoice_info["numeroControl"] = f"DTE-{tipo_dte}-0000{cod_estable}-{correlativo}"
         else:
             invoice_info["numeroControl"] = self.name
-        invoice_info["codigoGeneracion"] = self.sit_generar_uuid()
+        invoice_info["codigoGeneracion"] = self.hacienda_codigoGeneracion_identificacion #self.sit_generar_uuid()
         invoice_info["tipoModelo"] = int(self.journal_id.sit_modelo_facturacion)
         invoice_info["tipoOperacion"] = int(self.journal_id.sit_tipo_transmision)
         invoice_info["tipoContingencia"] = None
@@ -794,7 +794,7 @@ class AccountMove(models.Model):
         elif invoice_info["tipoDte"] == '14':
             invoice_info["version"] = 1        
         invoice_info["documento"] = doc_firmado
-        invoice_info["codigoGeneracion"] = self.sit_generar_uuid()
+        invoice_info["codigoGeneracion"] = self.hacienda_codigoGeneracion_identificacion #self.sit_generar_uuid()
         return invoice_info      
      
     def sit_generar_uuid(self) -> Any:
@@ -809,7 +809,7 @@ class AccountMove(models.Model):
     def sit_base_map_invoice_info_ndc(self):
         _logger.info("SIT sit_base_map_invoice_info_ndc self = %s", self)
         invoice_info = {}
-        nit=self.company_id.vat
+        nit=self.company_id.sit_uuid #self.company_id.vat
         nit = nit.replace("-", "")
         invoice_info["nit"] = nit
         invoice_info["activo"] = True

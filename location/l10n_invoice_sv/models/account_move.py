@@ -80,7 +80,7 @@ class AccountMove(models.Model):
                                 #invoice.msg_error("D.U.I.")
                                 pass
                     else:
-                        if not invoice.partner_id.parent_id.vat:
+                        if not invoice.partner_id.parent_id.fax:
                             #invoice.msg_error("N.I.T.")
                             pass
                         if invoice.partner_id.parent_id.company_type == 'person':
@@ -98,14 +98,14 @@ class AccountMove(models.Model):
                     if not invoice.partner_id.parent_id:
                         if not invoice.partner_id.nrc:
                             invoice.msg_error("N.R.C.")
-                        if not invoice.partner_id.vat:
+                        if not invoice.partner_id.fax:
                             invoice.msg_error("N.I.T.")
                         if not invoice.partner_id.codActividad:
                             invoice.msg_error("Actividad Economica")
                     else:
                         if not invoice.partner_id.parent_id.nrc:
                             invoice.msg_error("N.R.C.")
-                        if not invoice.partner_id.parent_id.vat:
+                        if not invoice.partner_id.parent_id.fax:
                             invoice.msg_error("N.I.T.")
                         if not invoice.partner_id.parent_id.codActividad:
                             invoice.msg_error("Actividad Economica")
